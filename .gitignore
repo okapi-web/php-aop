@@ -4,3 +4,8 @@
 # Composer
 vendor/
 composer.lock
+
+# PHPUnit
+tests/coverage/
+tests/cache/
+.phpunit.result.cache
