@@ -1,0 +1,33 @@
+[composer.json]
+indent_size = 4
+
+[*.php]
+indent_size = 4
+ij_php_align_assignments = true
+ij_php_align_class_constants = true
+ij_php_align_enum_cases = true
+ij_php_align_key_value_pairs = true
+ij_php_align_multiline_parameters_in_calls = true
+ij_php_align_phpdoc_comments = true
+ij_php_align_phpdoc_param_names = true
+ij_php_comma_after_last_argument = true
+ij_php_comma_after_last_array_element = true
+ij_php_comma_after_last_closure_use_var = true
+ij_php_comma_after_last_match_arm = true
+ij_php_comma_after_last_parameter = true
+ij_php_force_empty_methods_in_one_line = true
+ij_php_force_short_declaration_array_style = true
+ij_php_keep_rparen_and_lbrace_on_one_line = true
+ij_php_line_comment_add_space = true
+ij_php_line_comment_at_first_column = false
+ij_php_phpdoc_blank_lines_around_parameters = true
+ij_php_phpdoc_wrap_long_lines = true
+ij_php_space_before_short_closure_left_parenthesis = true
+
+[*.xml]
+indent_size = 2
+tab_width = 2
+ij_continuation_indent_size = 4
+
+[*.md]
+indent_size = 2
