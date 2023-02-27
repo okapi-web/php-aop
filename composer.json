@@ -1,0 +1,29 @@
+{
+    "name": "okapi/aop",
+    "description": "PHP AOP is a PHP library that provides a powerful Aspect Oriented Programming (AOP) implementation for PHP.",
+    "version": "0.1.0",
+    "type": "library",
+    "homepage": "https://github.com/okapi-web/php-aop",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "WalterWoshid",
+            "email": "wotschel.valentin@googlemail.com",
+            "homepage": "https://github.com/WalterWoshid"
+        }
+    ],
+    "keywords": [
+        "aop",
+        "aspect-oriented-programming",
+        "php",
+        "php-aop"
+    ],
+    "require": {
+        "php": ">=8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Okapi\\Aop\\": "src/"
+        }
+    }
+}
