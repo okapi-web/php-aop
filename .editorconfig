@@ -10,6 +10,7 @@ ij_php_align_key_value_pairs = true
 ij_php_align_multiline_parameters_in_calls = true
 ij_php_align_phpdoc_comments = true
 ij_php_align_phpdoc_param_names = true
+ij_php_blank_lines_before_package = 0
 ij_php_comma_after_last_argument = true
 ij_php_comma_after_last_array_element = true
 ij_php_comma_after_last_closure_use_var = true

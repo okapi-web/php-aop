@@ -23,10 +23,16 @@
         "test-coverage": "phpunit --coverage-html tests/coverage"
     },
     "require": {
-        "php": ">=8.1"
+        "php": ">=8.1",
+        "nette/php-generator": "^4.0",
+        "okapi/code-transformer": "^1.0",
+        "okapi/wildcards": "^1.0",
+        "okapi/singleton": "^1.0",
+        "php-di/php-di": "^7.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^10.0"
+        "phpunit/phpunit": "dev-main",
+        "symfony/var-dumper": "^6.2"
     },
     "autoload": {
         "psr-4": {
@@ -37,5 +43,25 @@
         "psr-4": {
             "Okapi\\Aop\\Tests\\": "tests/"
         }
-    }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/WalterWoshid/phpunit"
+        },
+        {
+            "type": "path",
+            "url": "../php-code-transformer",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../php-singleton",
+            "options": {
+                "symlink": true
+            }
+        }
+    ]
 }
