@@ -31,7 +31,7 @@
         "php-di/php-di": "^7.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "dev-main",
+        "phpunit/phpunit": "^10",
         "symfony/var-dumper": "^6.2"
     },
     "autoload": {
@@ -45,10 +45,6 @@
         }
     },
     "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/WalterWoshid/phpunit"
-        },
         {
             "type": "path",
             "url": "../php-code-transformer",
