@@ -3,7 +3,7 @@
 namespace Okapi\Aop\Attributes;
 
 use Attribute;
-use Okapi\Aop\Attributes\Base\BaseAdvice;
+use Okapi\Aop\Core\Attributes\Base\BaseAttribute;
 
 /**
  * # Aspect attribute
@@ -11,6 +11,6 @@ use Okapi\Aop\Attributes\Base\BaseAdvice;
  * This attribute is used to mark a class as an aspect.
  */
 #[Attribute(Attribute::TARGET_CLASS)]
-class Aspect extends BaseAdvice
+class Aspect extends BaseAttribute
 {
 }
