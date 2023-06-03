@@ -9,11 +9,12 @@ use Okapi\CodeTransformer\Core\DI;
 use ReflectionAttribute as BaseReflectionAttribute;
 use ReflectionClass as BaseReflectionClass;
 use ReflectionMethod as BaseReflectionMethod;
-use Roave\BetterReflection\Reflection\ReflectionClass as BetterReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod as BetterReflectionMethod;
 
 /**
- * TODO: docs
+ * # Method Advice Container
+ *
+ * This class is used to store method advice information.
  *
  * @property-read MethodAdvice $adviceAttributeInstance
  */
@@ -54,17 +55,14 @@ class MethodAdviceContainer extends AdviceContainer
     /**
      * Add matched method.
      *
-     * @param BetterReflectionClass  $matchedRefClass
      * @param BetterReflectionMethod $matchedRefMethod
      *
      * @return void
      */
     public function addMatchedMethod(
-        BetterReflectionClass  $matchedRefClass,
         BetterReflectionMethod $matchedRefMethod,
     ): void {
         $this->matchedMethods[] = DI::make(MatchedMethod::class, [
-            'matchedRefClass'  => $matchedRefClass,
             'matchedRefMethod' => $matchedRefMethod,
         ]);
     }
