@@ -37,8 +37,10 @@ class PaymentProcessorAspect
     public function logPayment(AroundMethodInvocation $invocation): void
     {
         $startTime = microtime(true);
+
         $invocation->proceed();
-        $endTime = microtime(true);
+
+        $endTime     = microtime(true);
         $elapsedTime = $endTime - $startTime;
 
         $amount = $invocation->getArgument('amount');
@@ -46,7 +48,7 @@ class PaymentProcessorAspect
         $logMessage = sprintf(
             'Payment processed for amount $%.2f in %.2f seconds',
             $amount,
-            $elapsedTime
+            $elapsedTime,
         );
 
         $logger = Logger::getInstance();
