@@ -545,6 +545,8 @@ class EverythingAspect
 
 - Complex advices for intercepting code structures and statements
 
+- Cache lifetime
+
 
 
 ## Show your support
