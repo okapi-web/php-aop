@@ -13,7 +13,7 @@ class DiscountAspect
 {
     #[After(
         class: Product::class . '|' . Order::class,
-        method: '*',
+        method: 'get(Price|Total)',
     )]
     public function applyDiscount(AfterMethodInvocation $invocation): void
     {
