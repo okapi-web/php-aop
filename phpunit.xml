@@ -14,5 +14,8 @@
     <include>
       <directory>src/</directory>
     </include>
+    <exclude>
+      <file>src/Core/.phpstorm.meta.php</file>
+    </exclude>
   </source>
 </phpunit>
