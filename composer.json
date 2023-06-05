@@ -25,7 +25,7 @@
     "require": {
         "php": ">=8.1",
         "nette/php-generator": "^4.0",
-        "okapi/code-transformer": "^1.0",
+        "okapi/code-transformer": "^1.3",
         "okapi/wildcards": "^1.0",
         "okapi/singleton": "^1.0",
         "php-di/php-di": "^7.0"
@@ -43,21 +43,5 @@
         "psr-4": {
             "Okapi\\Aop\\Tests\\": "tests/"
         }
-    },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../php-code-transformer",
-            "options": {
-                "symlink": true
-            }
-        },
-        {
-            "type": "path",
-            "url": "../php-singleton",
-            "options": {
-                "symlink": true
-            }
-        }
-    ]
+    }
 }
