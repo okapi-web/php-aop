@@ -116,6 +116,8 @@ composer require okapi/aop
 - **Pointcut**: A set of join points where you can apply your advice. Pointcuts
   are defined by the `#[Pointcut]` attribute.
 
+- **Weaving**: The process of applying your advice to your target classes.
+
 
 
 ## Create a Kernel
@@ -529,6 +531,9 @@ class EverythingAspect
 - More advice types:
   - `AfterReturning`
   - `AfterThrowing`
+  - `InsteadOf`
+  - `DeclareParents`
+  - `DeclareError`
 
 - Adding advices directly to methods and properties
 
