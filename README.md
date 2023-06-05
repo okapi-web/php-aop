@@ -553,6 +553,15 @@ Give a ⭐ if this project helped you!
 
 
 
+## 🙏 Thanks
+
+- Big thanks to [lisachenko](https://github.com/lisachenko) for their pioneering
+  work on the [Go! Aspect-Oriented Framework for PHP](https://github.com/goaop/framework).
+  This project drew inspiration from their innovative approach and served as a
+  foundation for this project.
+
+
+
 ## 📝 License
 
 Copyright © 2023 [Valentin Wotschel](https://github.com/WalterWoshid).<br>
