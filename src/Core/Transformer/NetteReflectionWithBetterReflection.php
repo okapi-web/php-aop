@@ -180,6 +180,8 @@ class NetteReflectionWithBetterReflection extends Transformer
             }
         }
 
+        // @codeCoverageIgnoreStart
         return null;
+        // @codeCoverageIgnoreEnd
     }
 }
