@@ -1,5 +1,5 @@
 <?php
-/** @noinspection PhpPropertyOnlyWrittenInspection */
+
 namespace Okapi\Aop\Core\JoinPoint;
 
 use Okapi\Aop\Core\Container\JoinPointContainer;

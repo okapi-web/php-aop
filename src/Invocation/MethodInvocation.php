@@ -89,6 +89,8 @@ abstract class MethodInvocation
      * Get the advice type of the invocation.
      *
      * @return AdviceType
+     *
+     * @noinspection PhpUndefinedClassInspection
      */
     public function getAdviceType(): AdviceType
     {

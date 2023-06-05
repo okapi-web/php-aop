@@ -1,5 +1,5 @@
 <?php
-/** @noinspection PhpInternalEntityUsedInspection */
+
 namespace Okapi\Aop\Core\Container;
 
 use Okapi\Aop\Core\Attributes\Base\BaseAdvice;

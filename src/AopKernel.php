@@ -1,5 +1,8 @@
 <?php
-/** @noinspection PhpPropertyOnlyWrittenInspection */
+/**
+ * @noinspection PhpInternalEntityUsedInspection
+ * @noinspection PhpPropertyOnlyWrittenInspection
+ */
 namespace Okapi\Aop;
 
 use DI\Attribute\Inject;
@@ -66,10 +69,10 @@ abstract class AopKernel extends CodeTransformerKernel
         parent::registerDependencyInjection();
 
         // Overload classes for extending the functionality
-        DI::set(CodeTransformerOptions::class, decorate(function() {
+        DI::set(CodeTransformerOptions::class, decorate(function () {
             return DI::get(Options::class);
         }));
-        DI::set(CodeTransformerCachePaths::class, decorate(function() {
+        DI::set(CodeTransformerCachePaths::class, decorate(function () {
             return DI::get(CachePaths::class);
         }));
         DI::set(
@@ -78,15 +81,15 @@ abstract class AopKernel extends CodeTransformerKernel
                 return DI::make(ClassLoader::class, [
                     'originalClassLoader' => $previous->originalClassLoader,
                 ]);
-            })
+            }),
         );
-        DI::set(TransformerProcessor::class, decorate(function() {
+        DI::set(TransformerProcessor::class, decorate(function () {
             return DI::get(AspectProcessor::class);
         }));
-        DI::set(CodeTransformerCacheStateFactory::class, decorate(function() {
+        DI::set(CodeTransformerCacheStateFactory::class, decorate(function () {
             return DI::get(CacheStateFactory::class);
         }));
-        DI::set(CodeTransformerCacheStateManager::class, decorate(function() {
+        DI::set(CodeTransformerCacheStateManager::class, decorate(function () {
             return DI::get(CacheStateManager::class);
         }));
     }

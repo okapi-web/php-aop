@@ -26,6 +26,8 @@ class AdviceContainerFactory
      * @param BaseReflectionMethod    $adviceRefMethod
      *
      * @return AdviceContainer
+     *
+     * @noinspection PhpInconsistentReturnPointsInspection
      */
     public function createAdviceContainer(
         string                  $aspectClassName,
