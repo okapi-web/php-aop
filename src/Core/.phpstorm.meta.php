@@ -1,9 +1,6 @@
 <?php
-
-use Okapi\Aop\Core\Transformer\NetteReflectionWithBetterReflection;
-
 /**
- * @see NetteReflectionWithBetterReflection
+ * @see \Okapi\Aop\Core\Transformer\NetteReflectionWithBetterReflection
  */
 namespace Nette\PhpGenerator {
 
