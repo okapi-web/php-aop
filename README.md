@@ -93,7 +93,7 @@ composer require okapi/aop
 - [How it works](#how-it-works)
 - [Testing](#testing)
 - [Contributing](#contributing)
-- [TODO](#todo)
+- [Roadmap](#roadmap)
 
 
 
@@ -509,41 +509,9 @@ class EverythingAspect
 
 
 
-## TODO
+## Roadmap
 
-- Add support for Production/Development environments:
-  - Production: Cache will not be checked for updates (better performance)
-  - Development: Cache will be checked for updates (better debugging experience)
-
-- Create a flowchart (WIP)
-
-- Document how to use xdebug with php-unit tests that use the
-  `#[RunTestsInSeparateProcesses]` attribute (PhpStorm)
-
-- Add tests: 
-  - For the `order` property of the advices
-
-- Test with Dependency Injection for aspects
-
-- Replace full proxy include dir with AOP_CACHE_DIR constant inside the proxy
-  class
-
-- More advice types:
-  - `AfterReturning`
-  - `AfterThrowing`
-  - `InsteadOf`
-  - `DeclareParents`
-  - `DeclareError`
-
-- Adding advices directly to methods and properties
-
-- Implement Pointcuts
-
-- PhpStorm/VSCode plugin
-  - Highlight the code that will be intercepted
-  - Show the list of aspects and their configuration
-
-- Complex advices for intercepting code structures and statements
+See [Roadmap](https://github.com/okapi-web/php-aop/issues/9) for more details.
 
 
 
