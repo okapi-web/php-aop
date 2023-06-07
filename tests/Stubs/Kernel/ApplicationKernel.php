@@ -3,7 +3,18 @@
 namespace Okapi\Aop\Tests\Stubs\Kernel;
 
 use Okapi\Aop\AopKernel;
-use Okapi\Aop\Tests\Stubs\Aspect;
+use Okapi\Aop\Tests\Functional\AbstractMethod\Aspect\FileUploaderAspect;
+use Okapi\Aop\Tests\Functional\AdviceMatchingMultipleClassesAndMethods\Aspect\DiscountAspect;
+use Okapi\Aop\Tests\Functional\AdviceOrder\Aspect\ArticleModerationAspect;
+use Okapi\Aop\Tests\Functional\BeforeAroundAfterAdviceOnSameAdviceMethod\Aspect\CalculatorLoggerAspect;
+use Okapi\Aop\Tests\Functional\BeforeAroundAfterAdviceOnSameTargetMethod\Aspect\PaymentProcessorAspect;
+use Okapi\Aop\Tests\Functional\ExceptionInsideAdvice\Aspect\CommentFilterAspect;
+use Okapi\Aop\Tests\Functional\InterfaceAdvice\Aspect\UserInterfaceAspect;
+use Okapi\Aop\Tests\Functional\ModifyArgument\Aspect\NumberHelperAspect;
+use Okapi\Aop\Tests\Functional\MultipleBeforeAdvicesOnSameTargetMethod\Aspect\ProfilePictureValidatorAspect;
+use Okapi\Aop\Tests\Functional\ProtectedAndPrivateMethods\Aspect\BankingAspect;
+use Okapi\Aop\Tests\Functional\SelfType\Aspect\SalaryIncreaserAspect;
+use Okapi\Aop\Tests\Functional\TraitAdvice\Aspect\RouteCachingAspect;
 use Okapi\Aop\Tests\Util;
 
 class ApplicationKernel extends AopKernel
@@ -11,17 +22,17 @@ class ApplicationKernel extends AopKernel
     protected ?string $cacheDir = Util::CACHE_DIR;
 
     protected array $aspects = [
-        Aspect\AbstractMethod\FileUploaderAspect::class,
-        Aspect\AdviceMatchingMultipleClassesAndMethods\DiscountAspect::class,
-        Aspect\AdviceOrder\ArticleModerationAspect::class,
-        Aspect\BeforeAroundAfterAdviceOnSameAdviceMethod\CalculatorLoggerAspect::class,
-        Aspect\BeforeAroundAfterAdviceOnSameTargetMethod\PaymentProcessorAspect::class,
-        Aspect\ExceptionInsideAdvice\CommentFilterAspect::class,
-        Aspect\InterfaceAdvice\UserInterfaceAspect::class,
-        Aspect\ModifyArgument\NumberHelperAspect::class,
-        Aspect\MultipleBeforeAdvicesOnSameTargetMethod\ProfilePictureValidatorAspect::class,
-        Aspect\ProtectedAndPrivateMethods\BankingAspect::class,
-        Aspect\SelfType\SalaryIncreaserAspect::class,
-        Aspect\TraitAdvice\RouteCachingAspect::class,
+        ArticleModerationAspect::class,
+        BankingAspect::class,
+        CalculatorLoggerAspect::class,
+        CommentFilterAspect::class,
+        DiscountAspect::class,
+        FileUploaderAspect::class,
+        NumberHelperAspect::class,
+        PaymentProcessorAspect::class,
+        ProfilePictureValidatorAspect::class,
+        RouteCachingAspect::class,
+        SalaryIncreaserAspect::class,
+        UserInterfaceAspect::class,
     ];
 }
