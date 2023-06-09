@@ -88,67 +88,84 @@ class AspectManager
      * Load the aspects.
      *
      * @return void
-     *
-     * @noinspection PhpUnhandledExceptionInspection Handled by {@link AspectNotFoundException}
-     * @noinspection PhpDocMissingThrowsInspection   Handled by {@link AspectNotFoundException}
      */
     private function loadAspects(): void
     {
         foreach ($this->aspects as $aspectClassName) {
-            // Validate the aspect
-            if (gettype($aspectClassName) !== 'string') {
-                throw new InvalidAspectClassNameException;
-            }
-
-            // Instantiate the aspect
-            try {
-                $aspectInstance = DI::make($aspectClassName);
-            } catch (Error|Exception) {
-                throw new AspectNotFoundException($aspectClassName);
-            }
-
-            // Create a reflection of the aspect
-            $aspectRefClass = new BaseReflectionClass($aspectInstance);
-
-            // Validate the aspect attribute
-            $attributes = $aspectRefClass->getAttributes(
-                Aspect::class,
-                BaseReflectionAttribute::IS_INSTANCEOF,
-            );
-            if (!$attributes) {
-                throw new MissingAspectAttributeException($aspectClassName);
-            }
-
-            // Iterate over the aspect methods and properties
-            $methods    = $aspectRefClass->getMethods();
-            $properties = $aspectRefClass->getProperties();
-            /** @var (BaseReflectionMethod|BaseReflectionProperty)[] $adviceRefMembers */
-            $adviceRefMembers = array_merge($methods, $properties);
-            foreach ($adviceRefMembers as $adviceRefMember) {
-                // Get the advices
-                $adviceAttributes = $adviceRefMember->getAttributes(
-                    BaseAdvice::class,
-                    BaseReflectionAttribute::IS_INSTANCEOF,
-                );
-
-                // Create advice containers and store them
-                foreach ($adviceAttributes as $adviceAttribute) {
-                    $adviceContainer = $this->adviceContainerFactory->createAdviceContainer(
-                        $aspectClassName,
-                        $aspectInstance,
-                        $aspectRefClass,
-                        $adviceAttribute,
-                        $adviceRefMember,
-                    );
-
-                    $this->aspectAdviceContainers[$aspectClassName][]      = $adviceContainer;
-                    $this->adviceContainers[$adviceContainer->getName()][] = $adviceContainer;
-                }
-            }
+            $this->loadAspect($aspectClassName);
         }
     }
 
     // endregion
+
+    /**
+     * Load an aspect by the given class name.
+     *
+     * @param class-string $aspectClassName
+     *
+     * @return void
+     *
+     * @noinspection PhpUnhandledExceptionInspection Handled by {@link AspectNotFoundException}
+     * @noinspection PhpDocMissingThrowsInspection   Handled by {@link AspectNotFoundException}
+     */
+    public function loadAspect(string $aspectClassName): void
+    {
+        // Check if the aspect is already loaded
+        if (isset($this->aspectAdviceContainers[$aspectClassName])) {
+            return;
+        }
+
+        // Validate the aspect
+        if (gettype($aspectClassName) !== 'string') {
+            throw new InvalidAspectClassNameException;
+        }
+
+        // Instantiate the aspect
+        try {
+            $aspectInstance = DI::make($aspectClassName);
+        } catch (Error|Exception) {
+            throw new AspectNotFoundException($aspectClassName);
+        }
+
+        // Create a reflection of the aspect
+        $aspectRefClass = new BaseReflectionClass($aspectInstance);
+
+        // Validate the aspect attribute
+        $attributes = $aspectRefClass->getAttributes(
+            Aspect::class,
+            BaseReflectionAttribute::IS_INSTANCEOF,
+        );
+        if (!$attributes) {
+            throw new MissingAspectAttributeException($aspectClassName);
+        }
+
+        // Iterate over the aspect methods and properties
+        $methods    = $aspectRefClass->getMethods();
+        $properties = $aspectRefClass->getProperties();
+        /** @var (BaseReflectionMethod|BaseReflectionProperty)[] $adviceRefMembers */
+        $adviceRefMembers = array_merge($methods, $properties);
+        foreach ($adviceRefMembers as $adviceRefMember) {
+            // Get the advices
+            $adviceAttributes = $adviceRefMember->getAttributes(
+                BaseAdvice::class,
+                BaseReflectionAttribute::IS_INSTANCEOF,
+            );
+
+            // Create advice containers and store them
+            foreach ($adviceAttributes as $adviceAttribute) {
+                $adviceContainer = $this->adviceContainerFactory->createAdviceContainer(
+                    $aspectClassName,
+                    $aspectInstance,
+                    $aspectRefClass,
+                    $adviceAttribute,
+                    $adviceRefMember,
+                );
+
+                $this->aspectAdviceContainers[$aspectClassName][]      = $adviceContainer;
+                $this->adviceContainers[$adviceContainer->getName()][] = $adviceContainer;
+            }
+        }
+    }
 
     /**
      * Get the aspects.
