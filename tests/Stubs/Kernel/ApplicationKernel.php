@@ -8,6 +8,7 @@ use Okapi\Aop\Tests\Functional\AdviceMatchingMultipleClassesAndMethods\Aspect\Di
 use Okapi\Aop\Tests\Functional\AdviceOrder\Aspect\ArticleModerationAspect;
 use Okapi\Aop\Tests\Functional\BeforeAroundAfterAdviceOnSameAdviceMethod\Aspect\CalculatorLoggerAspect;
 use Okapi\Aop\Tests\Functional\BeforeAroundAfterAdviceOnSameTargetMethod\Aspect\PaymentProcessorAspect;
+use Okapi\Aop\Tests\Functional\ClassHierarchyAspect\Aspect\NotificationAspect;
 use Okapi\Aop\Tests\Functional\ExceptionInsideAdvice\Aspect\CommentFilterAspect;
 use Okapi\Aop\Tests\Functional\InterfaceAdvice\Aspect\UserInterfaceAspect;
 use Okapi\Aop\Tests\Functional\ModifyArgument\Aspect\NumberHelperAspect;
@@ -28,6 +29,7 @@ class ApplicationKernel extends AopKernel
         CommentFilterAspect::class,
         DiscountAspect::class,
         FileUploaderAspect::class,
+        NotificationAspect::class,
         NumberHelperAspect::class,
         PaymentProcessorAspect::class,
         ProfilePictureValidatorAspect::class,
