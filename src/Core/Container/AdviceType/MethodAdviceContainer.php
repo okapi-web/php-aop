@@ -28,12 +28,15 @@ class MethodAdviceContainer extends AdviceContainer
     private array $matchedMethods = [];
 
     /**
+     * MethodAdviceContainer constructor.
+     *
      * @param class-string            $aspectClassName
      * @param object                  $aspectInstance
      * @param BaseReflectionClass     $aspectRefClass
      * @param BaseReflectionAttribute $adviceAttribute
      * @param MethodAdvice            $adviceAttributeInstance
      * @param BaseReflectionMethod    $adviceRefMethod
+     * @param bool                    $isImplicit
      */
     public function __construct(
         string                               $aspectClassName,
@@ -42,6 +45,7 @@ class MethodAdviceContainer extends AdviceContainer
         BaseReflectionAttribute              $adviceAttribute,
         MethodAdvice                         $adviceAttributeInstance,
         public readonly BaseReflectionMethod $adviceRefMethod,
+        private readonly bool                $isImplicit,
     ) {
         parent::__construct(
             $aspectClassName,
@@ -85,5 +89,15 @@ class MethodAdviceContainer extends AdviceContainer
     public function getName(): string
     {
         return $this->aspectClassName . '::' . $this->adviceRefMethod->getName();
+    }
+
+    /**
+     * Is implicit.
+     *
+     * @return bool
+     */
+    public function isImplicit(): bool
+    {
+        return $this->isImplicit;
     }
 }
