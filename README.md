@@ -118,6 +118,18 @@ composer require okapi/aop
 
 - **Weaving**: The process of applying your advice to your target classes.
 
+- **Implicit Aspects**: The aspects are applied without any modification to the
+  target classes. The aspect itself specifies the classes or methods it applies
+  to.
+
+- **Class-Level Explicit Aspects**: The aspects are applied by modifying the
+  target classes, typically by adding the aspect as an attribute to the target
+  class.
+
+- **Method-Level Explicit Aspects**: The aspects are applied by modifying the
+  target classes, typically by adding the aspect as an attribute to the target
+  method.
+
 
 
 ## Create a Kernel
