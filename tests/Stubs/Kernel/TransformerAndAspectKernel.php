@@ -3,8 +3,8 @@
 namespace Okapi\Aop\Tests\Stubs\Kernel;
 
 use Okapi\Aop\AopKernel;
-use Okapi\Aop\Tests\Stubs\Aspect\TransformerAndAspect\FixWrongReturnValueAspect;
-use Okapi\Aop\Tests\Stubs\Transformer\TransformerAndAspect\FixDeprecatedFunctionTransformer;
+use Okapi\Aop\Tests\Functional\TransformerAndAspect\Aspect\FixWrongReturnValueAspect;
+use Okapi\Aop\Tests\Functional\TransformerAndAspect\Transformer\FixDeprecatedFunctionTransformer;
 use Okapi\Aop\Tests\Util;
 
 class TransformerAndAspectKernel extends AopKernel

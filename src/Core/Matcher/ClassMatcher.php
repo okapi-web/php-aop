@@ -2,6 +2,8 @@
 /** @noinspection PhpInternalEntityUsedInspection */
 namespace Okapi\Aop\Core\Matcher;
 
+use Okapi\Aop\Core\Container\AdviceContainer;
+use Okapi\Aop\Core\Container\AdviceType\MethodAdviceContainer;
 use Okapi\Wildcards\Regex;
 use Roave\BetterReflection\Reflection\Reflection as BetterReflection;
 use Roave\BetterReflection\Reflection\ReflectionClass as BetterReflectionClass;
@@ -10,10 +12,60 @@ use Roave\BetterReflection\Reflector\Exception\IdentifierNotFound;
 /**
  * # Class Matcher
  *
- * This class is used to match a given class with the given regex.
+ * This class is used to match a given class with the given advice container.
  */
 class ClassMatcher
 {
+    /**
+     * Match the given class with the given advice container.
+     *
+     * @param BetterReflectionClass $refClass
+     * @param AdviceContainer       $adviceContainer
+     * @param string[]              $explicitAspectTargets
+     *
+     * @return bool
+     */
+    public function match(
+        BetterReflectionClass $refClass,
+        AdviceContainer       $adviceContainer,
+        array                 $explicitAspectTargets,
+    ): bool {
+        // Check for explicit match
+        /** @noinspection PhpConditionAlreadyCheckedInspection */
+        if ($adviceContainer instanceof MethodAdviceContainer) {
+            if ($adviceContainer->isExplicit()) {
+                return (bool)$explicitAspectTargets;
+            }
+        }
+
+        // Check for implicit match
+        $adviceAttributeInstance = $adviceContainer->adviceAttributeInstance;
+        $classRegex              = $adviceAttributeInstance->class;
+        $namespacedClass         = $refClass->getName();
+
+        $classMatches = $classRegex->matches($namespacedClass);
+
+        $interfacesMatches = $this->matchInterfaces(
+            $classRegex,
+            $refClass,
+        );
+
+        $parentClassesMatches = $this->matchParentClasses(
+            $classRegex,
+            $refClass,
+        );
+
+        $traitsMatches = $this->matchTraits(
+            $classRegex,
+            $refClass,
+        );
+
+        return $classMatches
+            || $interfacesMatches
+            || $parentClassesMatches
+            || $traitsMatches;
+    }
+
     /**
      * Match the interfaces of the given class.
      *
@@ -22,11 +74,11 @@ class ClassMatcher
      *
      * @return bool
      */
-    public function matchInterfaces(
+    protected function matchInterfaces(
         Regex                 $classRegex,
         BetterReflectionClass $reflectionClass,
     ): bool {
-        return $this->match(
+        return $this->matchType(
             'InterfaceNames',
             $classRegex,
             $reflectionClass,
@@ -41,11 +93,11 @@ class ClassMatcher
      *
      * @return bool
      */
-    public function matchParentClasses(
+    protected function matchParentClasses(
         Regex                 $classRegex,
         BetterReflectionClass $reflectionClass,
     ): bool {
-        return $this->match(
+        return $this->matchType(
             'ParentClassNames',
             $classRegex,
             $reflectionClass,
@@ -60,11 +112,11 @@ class ClassMatcher
      *
      * @return bool
      */
-    public function matchTraits(
+    protected function matchTraits(
         Regex                 $classRegex,
         BetterReflectionClass $reflectionClass,
     ): bool {
-        return $this->match(
+        return $this->matchType(
             'Traits',
             $classRegex,
             $reflectionClass,
@@ -80,7 +132,7 @@ class ClassMatcher
      *
      * @return bool
      */
-    private function match(
+    protected function matchType(
         string                $type,
         Regex                 $classRegex,
         BetterReflectionClass $reflectionClass,
