@@ -1,7 +1,7 @@
 {
     "name": "okapi/aop",
     "description": "PHP AOP is a PHP library that provides a powerful Aspect Oriented Programming (AOP) implementation for PHP.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "type": "library",
     "homepage": "https://github.com/okapi-web/php-aop",
     "license": "MIT",
