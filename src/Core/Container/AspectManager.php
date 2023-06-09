@@ -108,7 +108,7 @@ class AspectManager
      * @noinspection PhpUnhandledExceptionInspection Handled by {@link AspectNotFoundException}
      * @noinspection PhpDocMissingThrowsInspection   Handled by {@link AspectNotFoundException}
      */
-    public function loadAspect(string $aspectClassName): void
+    public function loadAspect(mixed $aspectClassName): void
     {
         // Check if the aspect is already loaded
         if (isset($this->aspectAdviceContainers[$aspectClassName])) {
