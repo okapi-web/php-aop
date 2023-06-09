@@ -43,7 +43,7 @@ class AdviceContainerFactory
         $adviceAttributeInstance = $adviceAttribute->newInstance();
 
         // Check if the aspect are implicit or class/method-level explicit
-        $isImplicit = (bool)$aspectRefClass->getAttributes(Attribute::class);
+        $isExplicit = (bool)$aspectRefClass->getAttributes(Attribute::class);
 
         if ($adviceAttributeInstance instanceof MethodAdvice) {
             $methodAdviceContainer = DI::make(MethodAdviceContainer::class, [
@@ -53,12 +53,12 @@ class AdviceContainerFactory
                 'adviceAttribute'         => $adviceAttribute,
                 'adviceAttributeInstance' => $adviceAttributeInstance,
                 'adviceRefMethod'         => $adviceRefMethod,
-                'isImplicit'              => $isImplicit,
+                'isExplicit'              => $isExplicit,
             ]);
 
-            // If the aspect is explicit,
+            // If the aspect is implicit,
             // check if the class and method names are set
-            if (!$isImplicit) {
+            if (!$isExplicit) {
                 if (!$adviceAttributeInstance->class) {
                     throw new MissingClassNameException(
                         $methodAdviceContainer->getName(),

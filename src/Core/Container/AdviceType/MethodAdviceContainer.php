@@ -36,7 +36,7 @@ class MethodAdviceContainer extends AdviceContainer
      * @param BaseReflectionAttribute $adviceAttribute
      * @param MethodAdvice            $adviceAttributeInstance
      * @param BaseReflectionMethod    $adviceRefMethod
-     * @param bool                    $isImplicit
+     * @param bool                    $isExplicit
      */
     public function __construct(
         string                               $aspectClassName,
@@ -45,7 +45,7 @@ class MethodAdviceContainer extends AdviceContainer
         BaseReflectionAttribute              $adviceAttribute,
         MethodAdvice                         $adviceAttributeInstance,
         public readonly BaseReflectionMethod $adviceRefMethod,
-        private readonly bool                $isImplicit,
+        private readonly bool                $isExplicit,
     ) {
         parent::__construct(
             $aspectClassName,
@@ -92,12 +92,12 @@ class MethodAdviceContainer extends AdviceContainer
     }
 
     /**
-     * Is implicit.
+     * Is explicit.
      *
      * @return bool
      */
-    public function isImplicit(): bool
+    public function isExplicit(): bool
     {
-        return $this->isImplicit;
+        return $this->isExplicit;
     }
 }
