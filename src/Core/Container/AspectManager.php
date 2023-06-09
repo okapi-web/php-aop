@@ -126,18 +126,18 @@ class AspectManager
             $adviceRefMembers = array_merge($methods, $properties);
             foreach ($adviceRefMembers as $adviceRefMember) {
                 // Get the advices
-                $advices = $adviceRefMember->getAttributes(
+                $adviceAttributes = $adviceRefMember->getAttributes(
                     BaseAdvice::class,
                     BaseReflectionAttribute::IS_INSTANCEOF,
                 );
 
                 // Create advice containers and store them
-                foreach ($advices as $advice) {
+                foreach ($adviceAttributes as $adviceAttribute) {
                     $adviceContainer = $this->adviceContainerFactory->createAdviceContainer(
                         $aspectClassName,
                         $aspectInstance,
                         $aspectRefClass,
-                        $advice,
+                        $adviceAttribute,
                         $adviceRefMember,
                     );
 
