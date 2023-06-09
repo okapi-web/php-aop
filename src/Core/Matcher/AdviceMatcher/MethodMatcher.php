@@ -30,14 +30,27 @@ class MethodMatcher
         $newMethodAdviceContainer = null;
 
         foreach ($refClassToMatch->getMethods() as $refMethodToMatch) {
-            $methodNameToMatch = $refMethodToMatch->getName();
+            // Check for explicit match
+            if ($methodAdviceContainer->isExplicit()) {
+                // Advices without a method name are matched for all methods
+                if ($adviceAttributeInstance->method === null) {
+                    if (!$newMethodAdviceContainer) {
+                        $newMethodAdviceContainer = clone $methodAdviceContainer;
+                    }
 
-            if ($adviceAttributeInstance->method->matches($methodNameToMatch)) {
-                if (!$newMethodAdviceContainer) {
-                    $newMethodAdviceContainer = clone $methodAdviceContainer;
+                    $newMethodAdviceContainer->addMatchedMethod($refMethodToMatch);
                 }
+            } else {
+                // Check for implicit match
+                $methodNameToMatch = $refMethodToMatch->getName();
 
-                $newMethodAdviceContainer->addMatchedMethod($refMethodToMatch);
+                if ($adviceAttributeInstance->method->matches($methodNameToMatch)) {
+                    if (!$newMethodAdviceContainer) {
+                        $newMethodAdviceContainer = clone $methodAdviceContainer;
+                    }
+
+                    $newMethodAdviceContainer->addMatchedMethod($refMethodToMatch);
+                }
             }
         }
 
