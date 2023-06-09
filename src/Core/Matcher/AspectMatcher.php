@@ -2,7 +2,9 @@
 /** @noinspection PhpPropertyOnlyWrittenInspection */
 namespace Okapi\Aop\Core\Matcher;
 
+use Attribute;
 use DI\Attribute\Inject;
+use Okapi\Aop\Attributes\Aspect;
 use Okapi\Aop\Core\Container\AdviceContainer;
 use Okapi\Aop\Core\Container\AdviceType\MethodAdviceContainer;
 use Okapi\Aop\Core\Container\AspectManager;
@@ -12,6 +14,7 @@ use Okapi\CodeTransformer\Core\Cache\CacheStateManager;
 use Okapi\CodeTransformer\Core\DI;
 use Okapi\CodeTransformer\Core\Util\ReflectionHelper;
 use Okapi\Path\Path;
+use Roave\BetterReflection\Reflection\ReflectionClass as BetterReflectionClass;
 
 /**
  * # Aspect Matcher
@@ -37,6 +40,9 @@ class AspectMatcher
     #[Inject]
     private AdviceMatcher $adviceMatcher;
 
+    #[Inject]
+    private AspectManager $aspectManager;
+
     // endregion
 
     /**
@@ -47,22 +53,30 @@ class AspectMatcher
     private array $matchedAdviceContainers = [];
 
     /**
+     * List of explicit aspect targets.
+     *
+     * @var array<class-string, string[]> Key is the class name, value is the
+     *                                    list of explicit aspect targets.
+     */
+    private array $explicitAspectTargets = [];
+
+    /**
      * Match advices for the given class by the given class loader.
      *
      * @param class-string $namespacedClass
      *
      * @return bool
      */
-    public function matchByClassLoader(
-        string $namespacedClass,
-    ): bool {
+    public function matchByClassLoader(string $namespacedClass): bool
+    {
+        // Get the reflection class
+        $refClass = $this->reflectionHelper->getReflectionClass($namespacedClass);
+
+        // Check for explicit class/method-level aspects
+        $this->checkForExplicitAdvices($refClass);
+
         // Get the aspects
         $aspectAdviceContainers = $this->aspectContainer->getAspectAdviceContainers();
-
-        // Get the reflection class
-        $refClass = $this->reflectionHelper->getReflectionClass(
-            $namespacedClass,
-        );
 
         // Skip interfaces and traits
         if ($refClass->isInterface() || $refClass->isTrait()) {
@@ -73,35 +87,15 @@ class AspectMatcher
             return false;
         }
 
-        // Match the advices
+        // Match the advices from the aspects
         $matchedAdviceContainers = [];
         foreach ($aspectAdviceContainers as $aspectAdviceContainer) {
             foreach ($aspectAdviceContainer as $adviceContainer) {
-                $adviceAttributeInstance = $adviceContainer->adviceAttributeInstance;
-                $classRegex              = $adviceAttributeInstance->class;
-
-                $classMatches = $classRegex->matches($namespacedClass);
-
-                $interfacesMatches = $this->classMatcher->matchInterfaces(
-                    $classRegex,
+                // Match class, interfaces, traits and parent classes
+                if (!$this->classMatcher->match(
                     $refClass,
-                );
-
-                $parentClassesMatches = $this->classMatcher->matchParentClasses(
-                    $classRegex,
-                    $refClass,
-                );
-
-                $traitsMatches = $this->classMatcher->matchTraits(
-                    $classRegex,
-                    $refClass,
-                );
-
-                // If none of the matches are true, skip the class
-                if (!($classMatches
-                    || $interfacesMatches
-                    || $parentClassesMatches
-                    || $traitsMatches
+                    $adviceContainer,
+                    $this->explicitAspectTargets[$namespacedClass] ?? [],
                 )) {
                     continue;
                 }
@@ -129,6 +123,35 @@ class AspectMatcher
         }
 
         return (bool)$matchedAdviceContainers;
+    }
+
+    /**
+     * Check for explicit advices and register them.
+     *
+     * @param BetterReflectionClass $refClass
+     *
+     * @return void
+     */
+    protected function checkForExplicitAdvices(
+        BetterReflectionClass $refClass,
+    ): void {
+        // Check for explicit class-level aspects
+        // TODO: Implement
+
+        // Check for explicit method-level aspects
+        foreach ($refClass->getImmediateMethods() as $refMethod) {
+            foreach ($refMethod->getAttributes() as $attribute) {
+                $attributeClass        = $attribute->getClass();
+                $hasAspectAttribute    = (bool)$attributeClass->getAttributesByInstance(Aspect::class);
+                $hasAttributeAttribute = (bool)$attributeClass->getAttributesByInstance(Attribute::class);
+
+                if ($hasAspectAttribute && $hasAttributeAttribute) {
+                    $this->aspectManager->loadAspect($attributeClass->getName());
+
+                    $this->explicitAspectTargets[$refClass->getName()][] = $refMethod->getName();
+                }
+            }
+        }
     }
 
     /**
