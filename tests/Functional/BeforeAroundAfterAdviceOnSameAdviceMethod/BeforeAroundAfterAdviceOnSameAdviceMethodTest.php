@@ -35,10 +35,10 @@ class BeforeAroundAfterAdviceOnSameAdviceMethodTest extends TestCase
         $log1 = $logs[0];
         $this->assertSame('Starting calculation...', $log1);
 
-        $log2 = $logs[1];
+        $log2     = $logs[1];
         $wildcard = 'Calculation took * seconds';
-        $regex = Regex::fromWildcard($wildcard);
-        $matches = $regex->matches($log2);
+        $regex    = Regex::fromWildcard($wildcard);
+        $matches  = $regex->matches($log2);
         $this->assertTrue($matches);
 
         $log3 = $logs[2];
