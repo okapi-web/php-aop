@@ -4,6 +4,7 @@ namespace Okapi\Aop\Core\Matcher;
 
 use Attribute;
 use DI\Attribute\Inject;
+use Okapi\Aop\AopKernel;
 use Okapi\Aop\Attributes\Aspect;
 use Okapi\Aop\Core\Container\AdviceContainer;
 use Okapi\Aop\Core\Container\AdviceType\MethodAdviceContainer;
@@ -14,6 +15,7 @@ use Okapi\CodeTransformer\Core\Cache\CacheStateManager;
 use Okapi\CodeTransformer\Core\DI;
 use Okapi\CodeTransformer\Core\Util\ReflectionHelper;
 use Okapi\Path\Path;
+use Roave\BetterReflection\Reflection\ReflectionAttribute as BetterReflectionAttribute;
 use Roave\BetterReflection\Reflection\ReflectionClass as BetterReflectionClass;
 
 /**
@@ -53,12 +55,20 @@ class AspectMatcher
     private array $matchedAdviceContainers = [];
 
     /**
-     * List of explicit aspect targets.
+     * List of explicit class aspect targets.
+     *
+     * @var array<class-string, bool> Key is the class name, value is true if
+     *                                the class has explicit aspect targets.
+     */
+    private array $explicitClassAspectTargets = [];
+
+    /**
+     * List of explicit method aspect targets.
      *
      * @var array<class-string, string[]> Key is the class name, value is the
      *                                    list of explicit aspect targets.
      */
-    private array $explicitAspectTargets = [];
+    private array $explicitMethodAspectTargets = [];
 
     /**
      * Match advices for the given class by the given class loader.
@@ -95,7 +105,8 @@ class AspectMatcher
                 if (!$this->classMatcher->match(
                     $refClass,
                     $adviceContainer,
-                    $this->explicitAspectTargets[$namespacedClass] ?? [],
+                    $this->explicitClassAspectTargets[$namespacedClass] ?? false,
+                    (bool)$this->explicitMethodAspectTargets[$namespacedClass],
                 )) {
                     continue;
                 }
@@ -128,6 +139,9 @@ class AspectMatcher
     /**
      * Check for explicit advices and register them.
      *
+     * Explicit advices don't need to be added to the {@link AopKernel},
+     * because they will be registered here at runtime.
+     *
      * @param BetterReflectionClass $refClass
      *
      * @return void
@@ -135,23 +149,68 @@ class AspectMatcher
     protected function checkForExplicitAdvices(
         BetterReflectionClass $refClass,
     ): void {
-        // Check for explicit class-level aspects
-        // TODO: Implement
+        $this->checkForExplicitClassAspects($refClass);
+        $this->checkForExplicitMethodAspects($refClass);
+    }
 
-        // Check for explicit method-level aspects
+    /**
+     * Check for explicit class-level aspects and register them.
+     *
+     * @param BetterReflectionClass $refClass
+     *
+     * @return void
+     */
+    protected function checkForExplicitClassAspects(
+        BetterReflectionClass $refClass,
+    ): void {
+        foreach ($refClass->getAttributes() as $refAttribute) {
+            if ($this->hasAspectAndAttribute($refAttribute)) {
+                $this->aspectManager->loadAspect($refAttribute->getClass()->getName());
+                $this->explicitClassAspectTargets[$refClass->getName()] = true;
+            }
+        }
+    }
+
+    /**
+     * Check for explicit method-level aspects and register them.
+     *
+     * @param BetterReflectionClass $refClass
+     *
+     * @return void
+     */
+    protected function checkForExplicitMethodAspects(
+        BetterReflectionClass $refClass,
+    ): void {
         foreach ($refClass->getImmediateMethods() as $refMethod) {
-            foreach ($refMethod->getAttributes() as $attribute) {
-                $attributeClass        = $attribute->getClass();
-                $hasAspectAttribute    = (bool)$attributeClass->getAttributesByInstance(Aspect::class);
-                $hasAttributeAttribute = (bool)$attributeClass->getAttributesByInstance(Attribute::class);
-
-                if ($hasAspectAttribute && $hasAttributeAttribute) {
-                    $this->aspectManager->loadAspect($attributeClass->getName());
-
-                    $this->explicitAspectTargets[$refClass->getName()][] = $refMethod->getName();
+            foreach ($refMethod->getAttributes() as $refAttribute) {
+                if ($this->hasAspectAndAttribute($refAttribute)) {
+                    $this->aspectManager->loadAspect($refAttribute->getClass()->getName());
+                    $this->explicitMethodAspectTargets[$refClass->getName()][] = $refMethod->getName();
                 }
             }
         }
+    }
+
+    /**
+     * Has both attributes: #[{@link Aspect}] and #[{@link Attribute}].
+     *
+     * @param BetterReflectionAttribute $refAttribute
+     *
+     * @return bool
+     */
+    protected function hasAspectAndAttribute(
+        BetterReflectionAttribute $refAttribute,
+    ): bool {
+        $attributeClass = $refAttribute->getClass();
+
+        $hasAspectAttribute    = (bool)$attributeClass->getAttributesByInstance(
+            Aspect::class,
+        );
+        $hasAttributeAttribute = (bool)$attributeClass->getAttributesByInstance(
+            Attribute::class,
+        );
+
+        return $hasAspectAttribute && $hasAttributeAttribute;
     }
 
     /**
