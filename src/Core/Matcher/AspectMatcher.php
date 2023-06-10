@@ -15,6 +15,7 @@ use Okapi\CodeTransformer\Core\Cache\CacheStateManager;
 use Okapi\CodeTransformer\Core\DI;
 use Okapi\CodeTransformer\Core\Util\ReflectionHelper;
 use Okapi\Path\Path;
+use Roave\BetterReflection\Reflection\ReflectionAttribute as BetterReflectionAttribute;
 use Roave\BetterReflection\Reflection\ReflectionClass as BetterReflectionClass;
 
 /**
@@ -148,33 +149,68 @@ class AspectMatcher
     protected function checkForExplicitAdvices(
         BetterReflectionClass $refClass,
     ): void {
-        // Check for explicit class-level aspects
-        foreach ($refClass->getAttributes() as $attribute) {
-            $attributeClass        = $attribute->getClass();
-            $hasAspectAttribute    = (bool)$attributeClass->getAttributesByInstance(Aspect::class);
-            $hasAttributeAttribute = (bool)$attributeClass->getAttributesByInstance(Attribute::class);
+        $this->checkForExplicitClassAspects($refClass);
+        $this->checkForExplicitMethodAspects($refClass);
+    }
 
-            if ($hasAspectAttribute && $hasAttributeAttribute) {
-                $this->aspectManager->loadAspect($attributeClass->getName());
-
+    /**
+     * Check for explicit class-level aspects and register them.
+     *
+     * @param BetterReflectionClass $refClass
+     *
+     * @return void
+     */
+    protected function checkForExplicitClassAspects(
+        BetterReflectionClass $refClass,
+    ): void {
+        foreach ($refClass->getAttributes() as $refAttribute) {
+            if ($this->hasAspectAndAttribute($refAttribute)) {
+                $this->aspectManager->loadAspect($refAttribute->getClass()->getName());
                 $this->explicitClassAspectTargets[$refClass->getName()] = true;
             }
         }
+    }
 
-        // Check for explicit method-level aspects
+    /**
+     * Check for explicit method-level aspects and register them.
+     *
+     * @param BetterReflectionClass $refClass
+     *
+     * @return void
+     */
+    protected function checkForExplicitMethodAspects(
+        BetterReflectionClass $refClass,
+    ): void {
         foreach ($refClass->getImmediateMethods() as $refMethod) {
-            foreach ($refMethod->getAttributes() as $attribute) {
-                $attributeClass        = $attribute->getClass();
-                $hasAspectAttribute    = (bool)$attributeClass->getAttributesByInstance(Aspect::class);
-                $hasAttributeAttribute = (bool)$attributeClass->getAttributesByInstance(Attribute::class);
-
-                if ($hasAspectAttribute && $hasAttributeAttribute) {
-                    $this->aspectManager->loadAspect($attributeClass->getName());
-
+            foreach ($refMethod->getAttributes() as $refAttribute) {
+                if ($this->hasAspectAndAttribute($refAttribute)) {
+                    $this->aspectManager->loadAspect($refAttribute->getClass()->getName());
                     $this->explicitMethodAspectTargets[$refClass->getName()][] = $refMethod->getName();
                 }
             }
         }
+    }
+
+    /**
+     * Has both attributes: #[{@link Aspect}] and #[{@link Attribute}].
+     *
+     * @param BetterReflectionAttribute $refAttribute
+     *
+     * @return bool
+     */
+    protected function hasAspectAndAttribute(
+        BetterReflectionAttribute $refAttribute,
+    ): bool {
+        $attributeClass = $refAttribute->getClass();
+
+        $hasAspectAttribute    = (bool)$attributeClass->getAttributesByInstance(
+            Aspect::class,
+        );
+        $hasAttributeAttribute = (bool)$attributeClass->getAttributesByInstance(
+            Attribute::class,
+        );
+
+        return $hasAspectAttribute && $hasAttributeAttribute;
     }
 
     /**
