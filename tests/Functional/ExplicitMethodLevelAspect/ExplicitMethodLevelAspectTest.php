@@ -34,6 +34,13 @@ class ExplicitMethodLevelAspectTest extends TestCase
         $this->executeTest();
     }
 
+    public function testCachedExplicitMethodLevelAspect(): void
+    {
+        ExplicitAspectsKernel::init();
+
+        $this->executeTest();
+    }
+
     private function executeTest(): void
     {
         $customerService = new CustomerService();
