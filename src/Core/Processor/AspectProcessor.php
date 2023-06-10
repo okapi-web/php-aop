@@ -94,9 +94,9 @@ class AspectProcessor extends TransformerProcessor
                 ? $this->getTransformerFilePaths($transformerContainers)
                 : [];
 
-            $aspectFilePaths = $this->getAspectFilePaths($adviceContainers);
-
             $adviceNames = $this->getAdviceNames($adviceContainers);
+            $aspectFilePaths = $this->getAspectFilePaths($adviceContainers);
+            $aspectClassNames = $this->getAspectClassNames($adviceContainers);
 
             $cacheState = DI::make(WovenCacheState::class, [
                 CacheState::DATA => [
@@ -108,6 +108,7 @@ class AspectProcessor extends TransformerProcessor
                     WovenCacheState::TRANSFORMER_FILE_PATHS_KEY => $transformerFilePaths,
                     WovenCacheState::ADVICE_NAMES_KEY           => $adviceNames,
                     WovenCacheState::ASPECT_FILE_PATHS_KEY      => $aspectFilePaths,
+                    WovenCacheState::ASPECT_CLASS_NAMES_KEY     => $aspectClassNames,
                 ],
             ]);
         } elseif ($transformed) {
@@ -192,13 +193,30 @@ class AspectProcessor extends TransformerProcessor
     }
 
     /**
+     * Get the advice names.
+     *
+     * @param AdviceContainer[] $adviceContainers
+     *
+     * @return string[]
+     */
+    protected function getAdviceNames(array $adviceContainers): array
+    {
+        return array_unique(array_map(
+            function (AdviceContainer $adviceContainer) {
+                return $adviceContainer->getName();
+            },
+            $adviceContainers,
+        ));
+    }
+
+    /**
      * Get the aspect file paths.
      *
      * @param AdviceContainer[] $adviceContainers
      *
-     * @return array
+     * @return string[]
      */
-    private function getAspectFilePaths(array $adviceContainers): array
+    protected function getAspectFilePaths(array $adviceContainers): array
     {
         return array_unique(array_map(
             function (AdviceContainer $adviceContainer) {
@@ -209,17 +227,17 @@ class AspectProcessor extends TransformerProcessor
     }
 
     /**
-     * Get the advice names.
+     * Get the aspect class names.
      *
      * @param AdviceContainer[] $adviceContainers
      *
-     * @return string[]
+     * @return class-string[]
      */
-    private function getAdviceNames(array $adviceContainers): array
+    protected function getAspectClassNames(array $adviceContainers): array
     {
         return array_unique(array_map(
             function (AdviceContainer $adviceContainer) {
-                return $adviceContainer->getName();
+                return $adviceContainer->aspectClassName;
             },
             $adviceContainers,
         ));
