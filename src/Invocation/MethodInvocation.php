@@ -77,8 +77,6 @@ abstract class MethodInvocation
      * @param array<string, mixed> $arguments
      *
      * @return void
-     *
-     * @todo Use in tests
      */
     public function setArguments(array $arguments): void
     {
