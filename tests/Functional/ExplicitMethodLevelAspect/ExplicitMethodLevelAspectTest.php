@@ -15,12 +15,16 @@ use PHPUnit\Framework\TestCase;
 #[RunTestsInSeparateProcesses]
 class ExplicitMethodLevelAspectTest extends TestCase
 {
-    /**
-     * @see PerformanceAspect::measure()
-     */
     public function testNotRegisteredExplicitMethodLevelAspect(): void
     {
         Util::clearCache();
+        EmptyKernel::init();
+
+        $this->executeTest();
+    }
+
+    public function testCachedNotRegisteredExplicitMethodLevelAspect(): void
+    {
         EmptyKernel::init();
 
         $this->executeTest();
@@ -34,6 +38,16 @@ class ExplicitMethodLevelAspectTest extends TestCase
         $this->executeTest();
     }
 
+    public function testCachedExplicitMethodLevelAspect(): void
+    {
+        ExplicitAspectsKernel::init();
+
+        $this->executeTest();
+    }
+
+    /**
+     * @see PerformanceAspect::measure()
+     */
     private function executeTest(): void
     {
         $customerService = new CustomerService();
