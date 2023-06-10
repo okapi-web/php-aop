@@ -1,6 +1,6 @@
 <?php
 
-namespace Okapi\Aop\Tests\Functional\DirectAspectOnMethod\Aspect;
+namespace Okapi\Aop\Tests\Functional\ExplicitMethodLevelAspect\Aspect;
 
 use Attribute;
 use Okapi\Aop\Attributes\Around;

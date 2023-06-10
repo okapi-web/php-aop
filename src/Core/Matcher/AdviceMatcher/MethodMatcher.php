@@ -32,13 +32,16 @@ class MethodMatcher
         foreach ($refClassToMatch->getMethods() as $refMethodToMatch) {
             // Check for explicit match
             if ($methodAdviceContainer->isExplicit()) {
-                // Advices without a method name are matched for all methods
-                if ($adviceAttributeInstance->method === null) {
-                    if (!$newMethodAdviceContainer) {
-                        $newMethodAdviceContainer = clone $methodAdviceContainer;
-                    }
+                // Only add methods that have the attribute of the aspect
+                $aspectClassName = $methodAdviceContainer->aspectClassName;
+                foreach ($refMethodToMatch->getAttributes() as $refAttribute) {
+                    if ($refAttribute->getName() === $aspectClassName) {
+                        if (!$newMethodAdviceContainer) {
+                            $newMethodAdviceContainer = clone $methodAdviceContainer;
+                        }
 
-                    $newMethodAdviceContainer->addMatchedMethod($refMethodToMatch);
+                        $newMethodAdviceContainer->addMatchedMethod($refMethodToMatch);
+                    }
                 }
             } else {
                 // Check for implicit match
