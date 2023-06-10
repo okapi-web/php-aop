@@ -23,9 +23,6 @@ abstract class BaseAdvice extends BaseAttribute
      *
      * @param string|null $class Wildcard pattern for the class name.
      * @param int         $order The order of the advice.
-     *
-     * @todo Implement tests and check for `class` and `method` if not used
-     *       directly (e.g. {@link PerformanceAspect}).
      */
     public function __construct(
         ?string    $class = null,
