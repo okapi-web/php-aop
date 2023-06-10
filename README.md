@@ -83,11 +83,22 @@ composer require okapi/aop
 ## 📖 List of contents
 
 - [Terminology](#terminology)
-- [Create a Kernel](#create-a-kernel)
-- [Create an Aspect](#create-an-aspect)
-- [Target Classes](#target-classes)
-- [Initialize the Kernel](#initialize-the-kernel)
-- [Result](#result)
+- [Implicit Aspects](#implicit-aspects)
+  - [Create a Kernel](#create-a-kernel)
+  - [Create an Aspect](#create-an-aspect)
+  - [Target Classes](#target-classes)
+  - [Initialize the Kernel](#initialize-the-kernel)
+  - [Result](#result)
+- [Class-Level Explicit Aspects](#class-level-explicit-aspects)
+  - [Create an Aspect](#create-an-aspect-1)
+  - [Target Classes](#target-classes-1)
+  - [Initialize the Kernel](#initialize-the-kernel-1)
+  - [Result](#result-1)
+- [Method-Level Explicit Aspects](#method-level-explicit-aspects)
+  - [Create an Aspect](#create-an-aspect-2)
+  - [Target Classes](#target-classes-2)
+  - [Initialize the Kernel](#initialize-the-kernel-2)
+  - [Result](#result-2)
 - [Features](#features)
 - [Limitations](#limitations)
 - [How it works](#how-it-works)
@@ -132,7 +143,12 @@ composer require okapi/aop
 
 
 
-## Create a Kernel
+## Implicit Aspects
+
+<details>
+<summary>Click to expand</summary>
+
+### Create a Kernel
 
 ```php
 <?php
@@ -151,7 +167,7 @@ class MyKernel extends AopKernel
 ```
 
 
-## Create an Aspect
+### Create an Aspect
 
 ```php
 // Discount Aspect
@@ -288,7 +304,7 @@ class PaymentProcessorAspect
 ```
 
 
-## Target Classes
+### Target Classes
 
 ```php
 // Product
@@ -339,7 +355,7 @@ class PaymentProcessor
 ```
 
 
-## Initialize the Kernel
+### Initialize the Kernel
 
 ```php
 // Initialize the kernel early in the application lifecycle
@@ -356,7 +372,7 @@ $kernel = MyKernel::init();
 ```
 
 
-## Result
+### Result
 
 ```php
 <?php
@@ -409,6 +425,258 @@ $mails     = $mailQueue->getMails();
 $firstMail = $mails[0];
 ```
 
+</details>
+
+
+## Class-Level Explicit Aspects
+
+<details>
+<summary>Click to expand</summary>
+
+Adding the custom Aspect to the Kernel is not required for class-level explicit
+aspects as they are registered automatically at runtime.
+
+### Create an Aspect
+
+```php
+// Logging Aspect
+
+<?php
+
+use Attribute;
+use Okapi\Aop\Attributes\Aspect;
+use Okapi\Aop\Attributes\Before;
+use Okapi\Aop\Invocation\BeforeMethodInvocation;
+
+// Class-Level Explicit Aspects must be annotated with the "Aspect" attribute
+// and the "Attribute" attribute
+#[Attribute]
+#[Aspect]
+class LoggingAspect
+{
+    // The "class" argument is not required
+    // The "method" argument is optional
+    //   Without the argument, the aspect will be applied to all methods
+    //   With the argument, the aspect will be applied to the specified method
+    #[Before]
+    public function logAllMethods(BeforeMethodInvocation $invocation): void
+    {
+        $methodName = $invocation->getMethodName();
+        
+        $logMessage = sprintf(
+            "Method '%s' executed.",
+            $methodName,
+        );
+        
+        $logger = Logger::getInstance();
+        $logger->log($logMessage);
+    }
+    
+    #[Before(
+        method: 'updateInventory',
+    )]
+    public function logUpdateInventory(BeforeMethodInvocation $invocation): void
+    {
+        $methodName = $invocation->getMethodName();
+
+        $logMessage = sprintf(
+            "Method '%s' executed.",
+            $methodName,
+        );
+
+        $logger = Logger::getInstance();
+        $logger->log($logMessage);
+    }
+}
+```
+
+
+### Target Classes
+
+```php
+// Inventory Tracker
+
+<?php
+
+// Custom Class-Level Explicit Aspect added to the class
+#[LoggingAspect]
+class InventoryTracker
+{
+    private array $inventory = [];
+    
+    public function updateInventory(int $productId, int $quantity): void
+    {
+         $this->inventory[$productId] = $quantity;
+    }
+    
+    public function checkInventory(int $productId): int
+    {
+        return $this->inventory[$productId] ?? 0;
+    }
+}
+```
+
+
+### Initialize the Kernel
+
+```php
+// Initialize the kernel early in the application lifecycle
+// Preferably after the autoloader is registered
+
+// The kernel must still be initialized, even if it has no Aspects
+
+<?php
+
+use MyKernel;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+// Initialize the AOP Kernel
+$kernel = MyKernel::init();
+```
+
+
+### Result
+
+```php
+<?php
+
+// Just use your classes as usual
+
+$inventoryTracker = new InventoryTracker();
+$inventoryTracker->updateInventory(1, 100);
+$inventoryTracker->updateInventory(2, 200);
+
+$countProduct1 = $inventoryTracker->checkInventory(1);
+$countProduct2 = $inventoryTracker->checkInventory(2);
+
+
+
+$logger = Logger::getInstance();
+
+// Value:
+//   Method 'updateInventory' executed. (4 times)
+//   Method 'checkInventory' executed. (2 times)
+$logs = $logger->getLogs();
+```
+
+</details>
+
+
+## Method-Level Explicit Aspects
+
+<details>
+<summary>Click to expand</summary>
+
+Adding the custom Aspect to the Kernel is not required for method-level explicit
+aspects as they are registered automatically at runtime.
+
+### Create an Aspect
+
+```php
+// Performance Aspect
+
+<?php
+
+use Attribute;
+use Okapi\Aop\Attributes\Around;
+use Okapi\Aop\Invocation\AroundMethodInvocation;
+use Okapi\Aop\Attributes\Aspect;
+
+// Method-Level Explicit Aspects must be annotated with the "Aspect" attribute
+// and the "Attribute" attribute
+#[Attribute]
+#[Aspect]
+class PerformanceAspect
+{
+    // The "class" argument is not required
+    // The "method" argument is optional
+    //   Without the argument, the aspect will be applied to all methods
+    //   With the argument, the aspect will be applied to the specified method
+    #[Around]
+    public function measure(AroundMethodInvocation $invocation): void
+    {
+        $start = microtime(true);
+        $invocation->proceed();
+        $end = microtime(true);
+
+        $executionTime = $end - $start;
+
+        $class  = $invocation->getClassName();
+        $method = $invocation->getMethodName();
+
+        $logMessage = sprintf(
+            "Method %s::%s executed in %.2f seconds.",
+            $class,
+            $method,
+            $executionTime,
+        );
+
+        $logger = Logger::getInstance();
+        $logger->log($logMessage);
+    }
+}
+```
+
+
+### Target Classes
+
+```php
+// Customer Service
+
+<?php
+
+class CustomerService
+{
+    #[PerformanceAspect]
+    public function createCustomer(): void
+    {
+        // Logic to create a customer
+    }
+}
+```
+
+
+### Initialize the Kernel
+
+```php
+// Initialize the kernel early in the application lifecycle
+// Preferably after the autoloader is registered
+
+// The kernel must still be initialized, even if it has no Aspects
+
+<?php
+
+use MyKernel;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+// Initialize the AOP Kernel
+$kernel = MyKernel::init();
+```
+
+
+### Result
+
+```php
+<?php
+
+// Just use your classes as usual
+
+$customerService = new CustomerService();
+$customerService->createCustomer();
+
+
+
+$logger = Logger::getInstance();
+$logs   = $logger->getLogs();
+
+// Value: Method CustomerService::createCustomer executed in 0.01 seconds.
+$firstLog = $logs[0];
+```
+
+</details>
+
 
 
 # Features
@@ -427,10 +695,10 @@ $firstMail = $mails[0];
   to modify and transform the source code of a loaded PHP class
   (See "Okapi/Code-Transformer" package for more information)
 
-  
+
 # Limitations
 
-- Internal "private" and "protected" methods cannot be intercepted
+- **Internal** "private" and "protected" methods cannot be intercepted
 
 
 
