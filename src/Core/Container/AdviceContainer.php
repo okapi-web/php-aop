@@ -23,7 +23,7 @@ abstract class AdviceContainer
      * @param BaseAdvice              $adviceAttributeInstance
      */
     public function __construct(
-        protected readonly string                  $aspectClassName,
+        public readonly string                     $aspectClassName,
         public readonly object                     $aspectInstance,
         public readonly BaseReflectionClass        $aspectRefClass,
         protected readonly BaseReflectionAttribute $adviceAttribute,
