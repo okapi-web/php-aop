@@ -4,6 +4,7 @@ namespace Okapi\Aop\Core\Matcher;
 
 use Attribute;
 use DI\Attribute\Inject;
+use Okapi\Aop\AopKernel;
 use Okapi\Aop\Attributes\Aspect;
 use Okapi\Aop\Core\Container\AdviceContainer;
 use Okapi\Aop\Core\Container\AdviceType\MethodAdviceContainer;
@@ -53,12 +54,20 @@ class AspectMatcher
     private array $matchedAdviceContainers = [];
 
     /**
-     * List of explicit aspect targets.
+     * List of explicit class aspect targets.
+     *
+     * @var array<class-string, bool> Key is the class name, value is true if
+     *                                the class has explicit aspect targets.
+     */
+    private array $explicitClassAspectTargets = [];
+
+    /**
+     * List of explicit method aspect targets.
      *
      * @var array<class-string, string[]> Key is the class name, value is the
      *                                    list of explicit aspect targets.
      */
-    private array $explicitAspectTargets = [];
+    private array $explicitMethodAspectTargets = [];
 
     /**
      * Match advices for the given class by the given class loader.
@@ -95,7 +104,8 @@ class AspectMatcher
                 if (!$this->classMatcher->match(
                     $refClass,
                     $adviceContainer,
-                    $this->explicitAspectTargets[$namespacedClass] ?? [],
+                    $this->explicitClassAspectTargets[$namespacedClass] ?? false,
+                    (bool)$this->explicitMethodAspectTargets[$namespacedClass],
                 )) {
                     continue;
                 }
@@ -128,6 +138,9 @@ class AspectMatcher
     /**
      * Check for explicit advices and register them.
      *
+     * Explicit advices don't need to be added to the {@link AopKernel},
+     * because they will be registered here at runtime.
+     *
      * @param BetterReflectionClass $refClass
      *
      * @return void
@@ -136,7 +149,17 @@ class AspectMatcher
         BetterReflectionClass $refClass,
     ): void {
         // Check for explicit class-level aspects
-        // TODO: Implement
+        foreach ($refClass->getAttributes() as $attribute) {
+            $attributeClass        = $attribute->getClass();
+            $hasAspectAttribute    = (bool)$attributeClass->getAttributesByInstance(Aspect::class);
+            $hasAttributeAttribute = (bool)$attributeClass->getAttributesByInstance(Attribute::class);
+
+            if ($hasAspectAttribute && $hasAttributeAttribute) {
+                $this->aspectManager->loadAspect($attributeClass->getName());
+
+                $this->explicitClassAspectTargets[$refClass->getName()] = true;
+            }
+        }
 
         // Check for explicit method-level aspects
         foreach ($refClass->getImmediateMethods() as $refMethod) {
@@ -148,7 +171,7 @@ class AspectMatcher
                 if ($hasAspectAttribute && $hasAttributeAttribute) {
                     $this->aspectManager->loadAspect($attributeClass->getName());
 
-                    $this->explicitAspectTargets[$refClass->getName()][] = $refMethod->getName();
+                    $this->explicitMethodAspectTargets[$refClass->getName()][] = $refMethod->getName();
                 }
             }
         }

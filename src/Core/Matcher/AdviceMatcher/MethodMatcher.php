@@ -65,7 +65,37 @@ class MethodMatcher
     ): ?MethodAdviceContainer {
         $aspectClassName = $methodAdviceContainer->aspectClassName;
 
-        // Only add methods that have the attribute of the aspect
+        // Match class attributes
+        $declaringClass = $refMethodToMatch->getDeclaringClass();
+        foreach ($declaringClass->getAttributes() as $refAttribute) {
+            if ($refAttribute->getName() === $aspectClassName) {
+                $adviceAttributeInstance = $methodAdviceContainer->adviceAttributeInstance;
+
+                // Advices without method are applied to all methods
+                if ($adviceAttributeInstance->method === null) {
+                    $newMethodAdviceContainer = $this->createNewMethodAdviceContainer(
+                        $methodAdviceContainer,
+                        $newMethodAdviceContainer,
+                    );
+
+                    $newMethodAdviceContainer->addMatchedMethod($refMethodToMatch);
+                } else {
+                    $methodNameToMatch = $refMethodToMatch->getName();
+                    $methodRegex       = $adviceAttributeInstance->method;
+
+                    if ($methodRegex->matches($methodNameToMatch)) {
+                        $newMethodAdviceContainer = $this->createNewMethodAdviceContainer(
+                            $methodAdviceContainer,
+                            $newMethodAdviceContainer,
+                        );
+
+                        $newMethodAdviceContainer->addMatchedMethod($refMethodToMatch);
+                    }
+                }
+            }
+        }
+
+        // Match method attributes
         foreach ($refMethodToMatch->getAttributes() as $refAttribute) {
             if ($refAttribute->getName() === $aspectClassName) {
                 $newMethodAdviceContainer = $this->createNewMethodAdviceContainer(
