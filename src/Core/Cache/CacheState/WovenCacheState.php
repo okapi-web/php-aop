@@ -29,12 +29,14 @@ class WovenCacheState extends CacheState
     public const TRANSFORMER_FILE_PATHS_KEY = 'transformerFilePaths';
     public const ADVICE_NAMES_KEY           = 'adviceNames';
     public const ASPECT_FILE_PATHS_KEY      = 'aspectFilePaths';
+    public const ASPECT_CLASS_NAMES_KEY     = 'aspectClassNames';
 
     public string $proxyFilePath;
     public string $wovenFilePath;
     public array $transformerFilePaths;
     public array $adviceNames;
     public array $aspectFilePaths;
+    public array $aspectClassNames;
 
     /**
      * @inheritDoc
@@ -49,6 +51,7 @@ class WovenCacheState extends CacheState
                 static::TRANSFORMER_FILE_PATHS_KEY,
                 static::ADVICE_NAMES_KEY,
                 static::ASPECT_FILE_PATHS_KEY,
+                static::ASPECT_CLASS_NAMES_KEY,
             ],
         );
     }
@@ -98,6 +101,11 @@ class WovenCacheState extends CacheState
      */
     public function getFilePath(): ?string
     {
+        // Register the aspects
+        foreach ($this->aspectClassNames as $aspectClassName) {
+            $this->aspectManager->loadAspect($aspectClassName);
+        }
+
         // Add the cached advice containers to the aspect matcher
         $this->aspectMatcher->addMatchedAdviceContainers(
             $this->namespacedClass,
