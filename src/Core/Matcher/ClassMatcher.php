@@ -21,20 +21,22 @@ class ClassMatcher
      *
      * @param BetterReflectionClass $refClass
      * @param AdviceContainer       $adviceContainer
-     * @param string[]              $explicitAspectTargets
+     * @param bool                  $explicitClassAspectTargets
+     * @param bool                  $explicitMethodAspectTargets
      *
      * @return bool
      */
     public function match(
         BetterReflectionClass $refClass,
         AdviceContainer       $adviceContainer,
-        array                 $explicitAspectTargets,
+        bool                  $explicitClassAspectTargets,
+        bool                  $explicitMethodAspectTargets,
     ): bool {
         // Check for explicit match
         /** @noinspection PhpConditionAlreadyCheckedInspection */
         if ($adviceContainer instanceof MethodAdviceContainer) {
             if ($adviceContainer->isExplicit()) {
-                return (bool)$explicitAspectTargets;
+                return $explicitClassAspectTargets || $explicitMethodAspectTargets;
             }
         }
 
