@@ -4,9 +4,9 @@ namespace Okapi\Aop\Tests\Functional\ExplicitMethodLevelAspect;
 
 use Okapi\Aop\Tests\Functional\ExplicitMethodLevelAspect\Aspect\PerformanceAspect;
 use Okapi\Aop\Tests\Functional\ExplicitMethodLevelAspect\ClassesToIntercept\CustomerService;
-use Okapi\Aop\Tests\Functional\ExplicitMethodLevelAspect\Kernel\EmptyKernel;
 use Okapi\Aop\Tests\Functional\ExplicitMethodLevelAspect\Kernel\ExplicitAspectsKernel;
 use Okapi\Aop\Tests\Stubs\Etc\Logger;
+use Okapi\Aop\Tests\Stubs\Kernel\EmptyKernel;
 use Okapi\Aop\Tests\Util;
 use Okapi\Wildcards\Regex;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;

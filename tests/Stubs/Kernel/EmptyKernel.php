@@ -1,6 +1,6 @@
 <?php
 
-namespace Okapi\Aop\Tests\Functional\ExplicitMethodLevelAspect\Kernel;
+namespace Okapi\Aop\Tests\Stubs\Kernel;
 
 use Okapi\Aop\AopKernel;
 use Okapi\Aop\Tests\Util;
