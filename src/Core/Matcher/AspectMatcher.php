@@ -106,7 +106,7 @@ class AspectMatcher
                     $refClass,
                     $adviceContainer,
                     $this->explicitClassAspectTargets[$namespacedClass] ?? false,
-                    (bool)$this->explicitMethodAspectTargets[$namespacedClass],
+                    (bool)($this->explicitMethodAspectTargets[$namespacedClass] ?? false),
                 )) {
                     continue;
                 }
