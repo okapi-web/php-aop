@@ -17,6 +17,7 @@ use Okapi\CodeTransformer\Core\Util\ReflectionHelper;
 use Okapi\Path\Path;
 use Roave\BetterReflection\Reflection\ReflectionAttribute as BetterReflectionAttribute;
 use Roave\BetterReflection\Reflection\ReflectionClass as BetterReflectionClass;
+use Roave\BetterReflection\Reflector\Exception\IdentifierNotFound;
 
 /**
  * # Aspect Matcher
@@ -201,7 +202,14 @@ class AspectMatcher
     protected function hasAspectAndAttribute(
         BetterReflectionAttribute $refAttribute,
     ): bool {
-        $attributeClass = $refAttribute->getClass();
+        try {
+            $attributeClass = $refAttribute->getClass();
+        } catch (IdentifierNotFound) {
+            // Sometimes attributes do not exist in the project, but only in
+            // the IDE. In this case, we can safely ignore the attribute.
+            // Example: JetBrains\PhpStorm
+            return false;
+        }
 
         $hasAspectAttribute    = (bool)$attributeClass->getAttributesByInstance(
             Aspect::class,
