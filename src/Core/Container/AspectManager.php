@@ -111,7 +111,7 @@ class AspectManager
     public function loadAspect(mixed $aspectClassName): void
     {
         // Check if the aspect is already loaded
-        if (isset($this->aspectAdviceContainers[$aspectClassName])) {
+        if (array_key_exists($aspectClassName, $this->aspectAdviceContainers)) {
             return;
         }
 
