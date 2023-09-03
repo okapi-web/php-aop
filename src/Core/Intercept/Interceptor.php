@@ -9,6 +9,7 @@ use Okapi\Aop\Core\Invocation\AdviceChain;
 use Okapi\Aop\Core\JoinPoint\JoinPointHandler;
 use Okapi\CodeTransformer\Core\DI;
 use ReflectionClass as BaseReflectionClass;
+use ReflectionMethod;
 
 /**
  * # Interceptor
@@ -156,6 +157,33 @@ class Interceptor
 
         $parentMethod = $parentClass->getMethod($this->methodName);
 
+        $this->unwrapVariadicParameters($parentMethod, $args);
+
         return $parentMethod->invoke($subject, ...array_values($args));
+    }
+
+    /**
+     * Unwrap variadic parameters.
+     *
+     * @param ReflectionMethod $method
+     * @param array             $args
+     *
+     * @return void
+     */
+    private function unwrapVariadicParameters(ReflectionMethod $method, array &$args): void
+    {
+        $parameters = $method->getParameters();
+
+        $lastParameter = end($parameters);
+
+        if ($lastParameter && $lastParameter->isVariadic()) {
+            $lastParameterName = $lastParameter->getName();
+
+            $variadicParameterValues = array_values($args[$lastParameterName]);
+
+            unset($args[$lastParameterName]);
+
+            $args = array_merge($args, $variadicParameterValues);
+        }
     }
 }
