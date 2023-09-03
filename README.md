@@ -145,7 +145,7 @@ composer require okapi/aop
 
 ## Implicit Aspects
 
-<details>
+<details open>
 <summary>Click to expand</summary>
 
 ### Create a Kernel
