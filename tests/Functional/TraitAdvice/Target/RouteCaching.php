@@ -1,6 +1,6 @@
 <?php
 
-namespace Okapi\Aop\Tests\Functional\TraitAdvice\ClassesToIntercept;
+namespace Okapi\Aop\Tests\Functional\TraitAdvice\Target;
 
 trait RouteCaching
 {

@@ -15,7 +15,6 @@ use Okapi\Aop\Tests\Functional\ModifyArgument\Aspect\NumberHelperAspect;
 use Okapi\Aop\Tests\Functional\MultipleBeforeAdvicesOnSameTargetMethod\Aspect\ProfilePictureValidatorAspect;
 use Okapi\Aop\Tests\Functional\ProtectedAndPrivateMethods\Aspect\BankingAspect;
 use Okapi\Aop\Tests\Functional\SelfType\Aspect\SalaryIncreaserAspect;
-use Okapi\Aop\Tests\Functional\TraitAdvice\Aspect\RouteCachingAspect;
 use Okapi\Aop\Tests\Util;
 
 class ApplicationKernel extends AopKernel
@@ -33,7 +32,6 @@ class ApplicationKernel extends AopKernel
         NumberHelperAspect::class,
         PaymentProcessorAspect::class,
         ProfilePictureValidatorAspect::class,
-        RouteCachingAspect::class,
         SalaryIncreaserAspect::class,
         UserInterfaceAspect::class,
     ];
