@@ -89,7 +89,7 @@ class AspectMatcher
         // Get the aspects
         $aspectAdviceContainers = $this->aspectContainer->getAspectAdviceContainers();
 
-        // Skip interfaces and traits
+        // Skip interfaces and traits, because they cannot be woven
         if ($refClass->isInterface() || $refClass->isTrait()) {
             $this->cacheEmptyResult(
                 $namespacedClass,
