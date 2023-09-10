@@ -5,7 +5,7 @@ namespace Okapi\Aop\Tests\Functional\TraitAdvice\Aspect;
 use Okapi\Aop\Attributes\Around;
 use Okapi\Aop\Attributes\Aspect;
 use Okapi\Aop\Invocation\AroundMethodInvocation;
-use Okapi\Aop\Tests\Functional\TraitAdvice\ClassesToIntercept\RouteCaching;
+use Okapi\Aop\Tests\Functional\TraitAdvice\Target\RouteCaching;
 
 #[Aspect]
 class RouteCachingAspect

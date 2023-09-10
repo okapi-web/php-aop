@@ -3,8 +3,8 @@
 namespace Okapi\Aop\Tests\Functional\TraitAdvice;
 
 use Okapi\Aop\Tests\Functional\TraitAdvice\Aspect\RouteCachingAspect;
-use Okapi\Aop\Tests\Functional\TraitAdvice\ClassesToIntercept\Router;
-use Okapi\Aop\Tests\Stubs\Kernel\ApplicationKernel;
+use Okapi\Aop\Tests\Functional\TraitAdvice\Kernel\TraitAdviceKernel;
+use Okapi\Aop\Tests\Functional\TraitAdvice\Target\Router;
 use Okapi\Aop\Tests\Util;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
@@ -18,7 +18,7 @@ class TraitAdviceTest extends TestCase
     public function testTraitAdvice(): void
     {
         Util::clearCache();
-        ApplicationKernel::init();
+        TraitAdviceKernel::init();
 
         $router = new Router();
 
