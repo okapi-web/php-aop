@@ -28,7 +28,20 @@ class MethodMatcher
     ): ?MethodAdviceContainer {
         $newMethodAdviceContainer = null;
 
+        $refClassToMatchName = $refClassToMatch->getName();
+
         foreach ($refClassToMatch->getMethods() as $refMethodToMatch) {
+            // Basically the same as $refClassToMatch->getImmediateMethods(),
+            // but this also includes the methods from traits, because traits
+            // cannot be woven
+            $declaringClass     = $refMethodToMatch->getDeclaringClass();
+            $declaringClassName = $declaringClass->getName();
+            if (!$declaringClass->isTrait()
+                && $declaringClassName !== $refClassToMatchName
+            ) {
+                continue;
+            }
+
             // Match explicit aspects
             if ($methodAdviceContainer->isExplicit()) {
                 $newMethodAdviceContainer = $this->matchExplicit(
