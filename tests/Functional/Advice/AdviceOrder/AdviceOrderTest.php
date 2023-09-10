@@ -1,8 +1,8 @@
 <?php
 
-namespace Okapi\Aop\Tests\Functional\AdviceOrder;
+namespace Okapi\Aop\Tests\Functional\Advice\AdviceOrder;
 
-use Okapi\Aop\Tests\Functional\AdviceOrder\Aspect\ArticleModerationAspect;
+use Okapi\Aop\Tests\Functional\Advice\AdviceOrder\Aspect\ArticleModerationAspect;
 use Okapi\Aop\Tests\Stubs\Etc\StackTrace;
 use Okapi\Aop\Tests\Stubs\Kernel\ApplicationKernel;
 use Okapi\Aop\Tests\Util;

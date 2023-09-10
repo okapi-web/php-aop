@@ -1,6 +1,6 @@
 <?php
 
-namespace Okapi\Aop\Tests\Functional\AdviceOrder\ClassesToIntercept;
+namespace Okapi\Aop\Tests\Functional\Advice\AdviceOrder\ClassesToIntercept;
 
 class ArticleManager
 {

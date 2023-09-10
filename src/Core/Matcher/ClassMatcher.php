@@ -52,15 +52,23 @@ class ClassMatcher
             $refClass,
         );
 
-        $parentClassesMatches = $this->matchParentClasses(
-            $classRegex,
-            $refClass,
-        );
+        $parentClassesMatches = false ;
+        if( ! $adviceAttributeInstance->bypassParent )
+        {
+            $parentClassesMatches = $this->matchParentClasses(
+                $classRegex,
+                $refClass,
+            );
+        }
 
-        $traitsMatches = $this->matchTraits(
-            $classRegex,
-            $refClass,
-        );
+        $traitsMatches = false ;
+        if( ! $adviceAttributeInstance->bypassTraits )
+        {
+            $traitsMatches = $this->matchTraits(
+                $classRegex,
+                $refClass,
+            );
+        }
 
         return $classMatches
             || $interfacesMatches

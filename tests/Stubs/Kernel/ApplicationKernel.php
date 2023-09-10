@@ -5,7 +5,7 @@ namespace Okapi\Aop\Tests\Stubs\Kernel;
 use Okapi\Aop\AopKernel;
 use Okapi\Aop\Tests\Functional\AbstractMethod\Aspect\FileUploaderAspect;
 use Okapi\Aop\Tests\Functional\AdviceMatchingMultipleClassesAndMethods\Aspect\DiscountAspect;
-use Okapi\Aop\Tests\Functional\AdviceOrder\Aspect\ArticleModerationAspect;
+use Okapi\Aop\Tests\Functional\Advice\AdviceOrder\Aspect\ArticleModerationAspect;
 use Okapi\Aop\Tests\Functional\BeforeAroundAfterAdviceOnSameAdviceMethod\Aspect\CalculatorLoggerAspect;
 use Okapi\Aop\Tests\Functional\BeforeAroundAfterAdviceOnSameTargetMethod\Aspect\PaymentProcessorAspect;
 use Okapi\Aop\Tests\Functional\ClassHierarchyAspect\Aspect\NotificationAspect;
@@ -36,5 +36,7 @@ class ApplicationKernel extends AopKernel
         RouteCachingAspect::class,
         SalaryIncreaserAspect::class,
         UserInterfaceAspect::class,
+        \Okapi\Aop\Tests\Functional\Advice\AdviceOnlyPublic\AspectDefault::class,
+        \Okapi\Aop\Tests\Functional\Advice\AdviceOnlyPublic\AspectOnlyPublic::class,
     ];
 }

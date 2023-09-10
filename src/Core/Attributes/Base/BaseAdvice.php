@@ -17,6 +17,14 @@ use Okapi\Wildcards\Regex;
 abstract class BaseAdvice extends BaseAttribute
 {
     public ?Regex $class;
+    /**
+     * Do not process methods defined in parent class.
+     */
+    public bool $bypassParent ;
+    /**
+     * Do not process methods defined in trait.
+     */
+    public bool $bypassTraits ;
 
     /**
      * Base advice constructor.
@@ -27,7 +35,11 @@ abstract class BaseAdvice extends BaseAttribute
     public function __construct(
         ?string    $class = null,
         public int $order = 0,
+        bool $bypassParent = false,
+        bool $bypassTraits = false,
     ) {
         $this->class = $class ? Regex::fromWildcard($class) : null;
+        $this->bypassParent = $bypassParent ;
+        $this->bypassTraits = $bypassTraits ;
     }
 }

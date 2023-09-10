@@ -5,6 +5,7 @@ namespace Okapi\Aop\Core\Matcher\AdviceMatcher;
 use Okapi\Aop\Core\Container\AdviceType\MethodAdviceContainer;
 use Roave\BetterReflection\Reflection\ReflectionClass as BetterReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod as BetterReflectionMethod;
+use ReflectionMethod as CoreReflectionMethod;
 
 /**
  * # Method Matcher
@@ -38,11 +39,33 @@ class MethodMatcher
                 );
             } else {
                 // Match implicit aspects
-                $newMethodAdviceContainer = $this->matchImplicit(
-                    $methodAdviceContainer,
-                    $refMethodToMatch,
-                    $newMethodAdviceContainer,
-                );
+
+                if( $methodAdviceContainer->adviceAttributeInstance->bypassParent 
+                    &&  in_array(
+                        $refMethodToMatch->getImplementingClass()->getName(),
+                        $refMethodToMatch->getCurrentClass()->getParentClassNames() )
+                ){
+                    // bypass parent classes
+                }
+                else if( $methodAdviceContainer->adviceAttributeInstance->bypassTraits
+                    && $refMethodToMatch->getDeclaringClass()->isTrait()
+                ){
+                    // bypass used traits
+                }
+                else if( 
+                    $methodAdviceContainer->adviceAttributeInstance->onlyPublic
+                    && ! ($refMethodToMatch->getModifiers() & CoreReflectionMethod::IS_PUBLIC)
+                ){
+                    // bypass no public methods
+                }
+                else
+                {
+                    $newMethodAdviceContainer = $this->matchImplicit(
+                        $methodAdviceContainer,
+                        $refMethodToMatch,
+                        $newMethodAdviceContainer,
+                    );
+                }
             }
         }
 

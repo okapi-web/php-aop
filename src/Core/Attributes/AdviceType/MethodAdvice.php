@@ -21,6 +21,7 @@ use Okapi\Wildcards\Regex;
 abstract class MethodAdvice extends BaseAdvice
 {
     public ?Regex $method;
+    public bool $onlyPublic;
 
     /**
      * MethodAdvice constructor.
@@ -32,8 +33,12 @@ abstract class MethodAdvice extends BaseAdvice
         ?string $class = null,
         ?string $method = null,
         int     $order = 0,
+        bool $bypassParent = false,
+        bool $bypassTraits = false,
+        bool $onlyPublic = false,
     ) {
-        parent::__construct($class, $order);
+        parent::__construct(class: $class, order: $order, bypassParent: $bypassParent, bypassTraits: $bypassTraits );
         $this->method = $method ? Regex::fromWildcard($method) : null;
+        $this->onlyPublic = $onlyPublic ;
     }
 }
