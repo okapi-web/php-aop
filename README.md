@@ -192,7 +192,7 @@ class DiscountAspect
         // When using an eager wildcard you can need some of those combinable options:
         // bool onlyPublic: will weave only public methods
         // bool bypassParent: will weave only the matching Class and ignore parent classes hierarchy.
-        // bool bypassTrait: will weave only methods defining in Class, ignore those defined in Trait.
+        // bool bypassTraits: will weave only methods defining in Class, ignore those defined in Trait.
     )]
     public function applyDiscount(AfterMethodInvocation $invocation): void
     {
