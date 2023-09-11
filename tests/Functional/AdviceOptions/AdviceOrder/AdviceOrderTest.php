@@ -1,8 +1,8 @@
 <?php
 
-namespace Okapi\Aop\Tests\Functional\AdviceOrder;
+namespace Okapi\Aop\Tests\Functional\AdviceOptions\AdviceOrder;
 
-use Okapi\Aop\Tests\Functional\AdviceOrder\Aspect\ArticleModerationAspect;
+use Okapi\Aop\Tests\Functional\AdviceOptions\AdviceOrder\Aspect\ArticleModerationAspect;
 use Okapi\Aop\Tests\Stubs\Etc\StackTrace;
 use Okapi\Aop\Tests\Stubs\Kernel\ApplicationKernel;
 use Okapi\Aop\Tests\Util;
@@ -22,7 +22,7 @@ class AdviceOrderTest extends TestCase
         Util::clearCache();
         ApplicationKernel::init();
 
-        $articleManager = new ClassesToIntercept\ArticleManager();
+        $articleManager = new Target\ArticleManager();
 
         $articleManager->createArticle(
             'Hello World',
