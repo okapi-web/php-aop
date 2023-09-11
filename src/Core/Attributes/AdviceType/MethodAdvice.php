@@ -32,6 +32,8 @@ abstract class MethodAdvice extends BaseAdvice
         ?string $class = null,
         ?string $method = null,
         int     $order = 0,
+        public bool $bypassParentMethods = false,
+        public bool $bypassTraitMethods = false,
     ) {
         parent::__construct($class, $order);
         $this->method = $method ? Regex::fromWildcard($method) : null;

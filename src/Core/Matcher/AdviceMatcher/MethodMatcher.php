@@ -36,7 +36,8 @@ class MethodMatcher
             // cannot be woven
             $declaringClass     = $refMethodToMatch->getDeclaringClass();
             $declaringClassName = $declaringClass->getName();
-            if (!$declaringClass->isTrait()
+            if (
+                !$declaringClass->isTrait()
                 && $declaringClassName !== $refClassToMatchName
             ) {
                 continue;
@@ -51,11 +52,12 @@ class MethodMatcher
                 );
             } else {
                 // Match implicit aspects
+
                 $newMethodAdviceContainer = $this->matchImplicit(
                     $methodAdviceContainer,
                     $refMethodToMatch,
                     $newMethodAdviceContainer,
-                );
+                );    
             }
         }
 
@@ -138,6 +140,25 @@ class MethodMatcher
         ?MethodAdviceContainer $newMethodAdviceContainer,
     ): ?MethodAdviceContainer {
         $methodNameToMatch = $refMethodToMatch->getName();
+
+        if (
+            $methodAdviceContainer->adviceAttributeInstance->bypassParentMethods
+            &&  in_array(
+                $refMethodToMatch->getImplementingClass()->getName(),
+                $refMethodToMatch->getCurrentClass()->getParentClassNames()
+            )
+        ) {
+            // bypass parent classes
+            return $newMethodAdviceContainer;
+        }
+
+        if (
+            $methodAdviceContainer->adviceAttributeInstance->bypassTraitMethods
+            && $refMethodToMatch->getDeclaringClass()->isTrait()
+        ) {
+            // bypass used traits
+            return $newMethodAdviceContainer;
+        }
 
         if ($methodAdviceContainer->adviceAttributeInstance->method->matches($methodNameToMatch)) {
             $newMethodAdviceContainer = $this->createNewMethodAdviceContainer(
