@@ -189,6 +189,9 @@ class DiscountAspect
         // You can also use Wildcards (see Okapi/Wildcards package)
         class: Product::class . '|' . Order::class,
         method: 'get(Price|Total)',
+        // When using an eager wildcard you can need some of those combinable options:
+        // - bool onlyPublicMethods: weaving only public methods, ignore protected and private methods;
+        // - bool bypassTraitMethods: weaving only methods defining in matching Class or Parent class, ignore those defined in Trait.
     )]
     public function applyDiscount(AfterMethodInvocation $invocation): void
     {
