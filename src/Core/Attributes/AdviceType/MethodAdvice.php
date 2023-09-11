@@ -27,13 +27,14 @@ abstract class MethodAdvice extends BaseAdvice
      *
      * @param string|null $class  Wildcard pattern for the class name.
      * @param string|null $method Wildcard pattern for the method name.
+     * @inheritdoc
      */
     public function __construct(
         ?string $class = null,
         ?string $method = null,
         int     $order = 0,
-        public bool $bypassParentMethods = false,
         public bool $bypassTraitMethods = false,
+        public bool $onlyPublicMethods = false,
     ) {
         parent::__construct($class, $order);
         $this->method = $method ? Regex::fromWildcard($method) : null;
