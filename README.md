@@ -189,6 +189,10 @@ class DiscountAspect
         // You can also use Wildcards (see Okapi/Wildcards package)
         class: Product::class . '|' . Order::class,
         method: 'get(Price|Total)',
+
+        // When using wildcards you can also use some of these options:
+        onlyPublicMethods: false, // Intercepts only public methods and ignores protected and private methods (default: false)
+        interceptTraitMethods: true, // Also intercepts methods from traits (default: true)
     )]
     public function applyDiscount(AfterMethodInvocation $invocation): void
     {
