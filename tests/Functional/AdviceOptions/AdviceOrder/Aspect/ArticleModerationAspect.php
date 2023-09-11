@@ -1,11 +1,11 @@
 <?php
 /** @noinspection PhpUnused */
 /** @noinspection PhpMissingReturnTypeInspection */
-namespace Okapi\Aop\Tests\Functional\AdviceOrder\Aspect;
+namespace Okapi\Aop\Tests\Functional\AdviceOptions\AdviceOrder\Aspect;
 
 use Okapi\Aop\Attributes\After;
 use Okapi\Aop\Attributes\Aspect;
-use Okapi\Aop\Tests\Functional\AdviceOrder\ClassesToIntercept\ArticleManager;
+use Okapi\Aop\Tests\Functional\AdviceOptions\AdviceOrder\Target\ArticleManager;
 use Okapi\Aop\Tests\Stubs\Etc\StackTrace;
 
 #[Aspect]

@@ -3,6 +3,7 @@
 namespace Okapi\Aop\Core\Matcher\AdviceMatcher;
 
 use Okapi\Aop\Core\Container\AdviceType\MethodAdviceContainer;
+use ReflectionMethod as BaseReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionClass as BetterReflectionClass;
 use Roave\BetterReflection\Reflection\ReflectionMethod as BetterReflectionMethod;
 
@@ -138,6 +139,20 @@ class MethodMatcher
         ?MethodAdviceContainer $newMethodAdviceContainer,
     ): ?MethodAdviceContainer {
         $methodNameToMatch = $refMethodToMatch->getName();
+
+        // Only public methods
+        if ($methodAdviceContainer->adviceAttributeInstance->onlyPublicMethods
+            && !($refMethodToMatch->getModifiers() & BaseReflectionMethod::IS_PUBLIC)
+        ) {
+            return $newMethodAdviceContainer;
+        }
+
+        // Intercept trait methods
+        if (!$methodAdviceContainer->adviceAttributeInstance->interceptTraitMethods
+            && $refMethodToMatch->getDeclaringClass()->isTrait()
+        ) {
+            return $newMethodAdviceContainer;
+        }
 
         if ($methodAdviceContainer->adviceAttributeInstance->method->matches($methodNameToMatch)) {
             $newMethodAdviceContainer = $this->createNewMethodAdviceContainer(
