@@ -1,8 +1,7 @@
-name: PHP Tests
+name: PHP Performance Tests
 
 on:
-  push:
-    branches: [ "master" ]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -27,6 +26,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
+          coverage: none
 
       - name: Check PHP version
         run: php -v
@@ -44,13 +44,5 @@ jobs:
         name: Install Composer dependencies
         run: composer install --prefer-dist --no-progress
 
-      - name: PHPUnit Tests
-        run: vendor/bin/phpunit --testsuite=Tests --coverage-clover ./tests/coverage.xml
-
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./tests/coverage.xml
-          flags: os-${{ matrix.operating-system }}_php-${{ matrix.php-version }}
-          verbose: true
+      - name: PHPUnit Performance Tests
+        run: vendor/bin/phpunit --testsuite=Performance
