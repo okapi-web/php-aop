@@ -19,7 +19,8 @@
         "php-aop"
     ],
     "scripts": {
-        "test": "phpunit",
+        "test": "phpunit --testsuite=Tests",
+        "test-performance": "phpunit --testsuite=Performance",
         "test-coverage": "phpunit --coverage-html tests/coverage"
     },
     "require": {
@@ -31,8 +32,9 @@
         "php-di/php-di": "^7.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^10",
-        "symfony/var-dumper": "^6.2"
+        "phpunit/phpunit": "^10.3",
+        "symfony/var-dumper": "^6.3",
+        "symfony/console": "^6.3"
     },
     "autoload": {
         "psr-4": {
