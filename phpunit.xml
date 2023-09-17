@@ -6,7 +6,11 @@
 >
   <testsuites>
     <testsuite name="Tests">
-      <directory>tests/</directory>
+      <directory>tests/Functional</directory>
+    </testsuite>
+
+    <testsuite name="Performance">
+      <directory>tests/Performance</directory>
     </testsuite>
   </testsuites>
 
