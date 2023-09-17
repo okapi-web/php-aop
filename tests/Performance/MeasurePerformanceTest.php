@@ -148,7 +148,9 @@ class MeasurePerformanceTest extends TestCase
 
         $numbers = new Numbers();
 
-        $this->  endMeasure(self::MEASURE_TYPE_CLASS_LOADING);
+        $this->endMeasure(self::MEASURE_TYPE_CLASS_LOADING);
+        $expectedResults = [];
+        $actualResults = [];
         $this->startMeasure(self::MEASURE_TYPE_METHOD_CALL);
 
         // There are 2 loops here, that could be merged into one, but the
@@ -157,10 +159,9 @@ class MeasurePerformanceTest extends TestCase
         if ($useAspects) {
             foreach (range(1, $timesCount) as $ignored) {
                 $result = $numbers->get();
-                $this->assertEquals(
-                    expected: $aspectCount,
-                    actual: $result
-                );
+
+                $expectedResults[] = $aspectCount;
+                $actualResults[] = $result;
             }
         } else {
             foreach (range(1, $timesCount) as $ignored) {
@@ -170,10 +171,9 @@ class MeasurePerformanceTest extends TestCase
                 }
 
                 $result = $numbers->get();
-                $this->assertEquals(
-                    expected: $aspectCount,
-                    actual: $result
-                );
+
+                $expectedResults[] = $aspectCount;
+                $actualResults[] = $result;
 
                 $numbers->set(0);
             }
@@ -181,6 +181,7 @@ class MeasurePerformanceTest extends TestCase
 
         $this->endMeasure(self::MEASURE_TYPE_METHOD_CALL);
         $this->endMeasure(self::MEASURE_TYPE_FROM_START_TO_END);
+        $this->assertEquals($expectedResults, $actualResults);
 
         $this->saveMeasuresToFile();
 

@@ -16,7 +16,7 @@ jobs:
         operating-system: [ ubuntu-latest ]
         php-version: [ '8.1', '8.2' ]
 
-    name: PHP ${{ matrix.php-version }} test on ${{ matrix.operating-system }}
+    name: PHP ${{ matrix.php-version }} performance tests on ${{ matrix.operating-system }}
 
     steps:
       - name: Checkout Code
