@@ -15,9 +15,4 @@ class Numbers
     {
         $this->number += $number;
     }
-
-    public function set(int $number): void
-    {
-        $this->number = $number;
-    }
 }
