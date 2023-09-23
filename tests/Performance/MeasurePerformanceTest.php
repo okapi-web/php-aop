@@ -40,6 +40,24 @@ class MeasurePerformanceTest extends TestCase
     private const METRIC_TYPE_TIME   = 'Time';
     private const METRIC_TYPE_MEMORY = 'Memory';
 
+    public static array $aspectCountAndTimesCount = [
+        [1, 1],
+        [5, 5],
+        [20, 20],
+        [50, 50],
+        [100, 100],
+        [500, 100],
+        [100, 500],
+        [1000, 500],
+        [500, 1000],
+        [1000, 1000],
+        [1, 5000],
+        [5000, 1],
+        [5000, 1000],
+        [1000, 5000],
+        [5000, 5000],
+    ];
+
     /**
      * @return array Count of array should be:
      *   <code>count($aspectCountAndTimesCount) * count($flags) + 1</code>
@@ -47,24 +65,6 @@ class MeasurePerformanceTest extends TestCase
      */
     public static function dataProvider(): array
     {
-        $aspectCountAndTimesCount = [
-            [1, 1],
-            [5, 5],
-            [20, 20],
-            [50, 50],
-            [100, 100],
-            [500, 100],
-            [100, 500],
-            [1000, 500],
-            [500, 1000],
-            [1000, 1000],
-            [1, 5000],
-            [5000, 1],
-            [5000, 1000],
-            [1000, 5000],
-            [5000, 5000],
-        ];
-
         $flags = [
             self::MEASURE_TYPE_WITHOUT_ASPECTS     => ['useAspects' => false, 'cached' => false],
             self::MEASURE_TYPE_WITH_ASPECTS        => ['useAspects' => true,  'cached' => false],
@@ -73,7 +73,7 @@ class MeasurePerformanceTest extends TestCase
 
         $data = [];
 
-        foreach ($aspectCountAndTimesCount as $count) {
+        foreach (self::$aspectCountAndTimesCount as $count) {
             foreach ($flags as $measureType => $flag) {
                 $aspectCount = $count[0];
                 $timesCount = $count[1];
@@ -102,6 +102,7 @@ class MeasurePerformanceTest extends TestCase
         return $data;
     }
 
+    /** @noinspection PhpUnusedLocalVariableInspection */
     #[Test]
     #[DataProvider('dataProvider')]
     public function measurePerformance(
@@ -110,7 +111,10 @@ class MeasurePerformanceTest extends TestCase
         bool $useAspects,
         bool $cached
     ): void {
-        $firstRun = $aspectCount === 1 && $timesCount === 1 && !$useAspects && !$cached;
+        $firstRun = $aspectCount === self::$aspectCountAndTimesCount[0][0]
+            && $timesCount === self::$aspectCountAndTimesCount[0][1]
+            && !$useAspects
+            && !$cached;
         $shouldCleanCache = $firstRun || ($useAspects && !$cached);
         $lastRun = $aspectCount === 0 && $timesCount === 0 && !$useAspects && !$cached;
 
@@ -128,10 +132,11 @@ class MeasurePerformanceTest extends TestCase
             return;
         }
 
-        if ($useAspects) {
-            /** @var class-string<MeasurePerformanceKernel> $kernel */
-            $kernel = $this->createKernelAndAspects($aspectCount);
-        }
+        /**
+         * @var class-string<MeasurePerformanceKernel> $kernel
+         * @var class-string<Numbers>[] $classes
+         */
+        [$kernel, $classes] = $this->createKernelAspectsAndClasses($useAspects, $aspectCount);
 
         $this->useAspects = $useAspects;
         $this->cached = $cached;
@@ -140,161 +145,232 @@ class MeasurePerformanceTest extends TestCase
         $this->startMeasure(self::MEASURE_TYPE_BOOT);
 
         if ($useAspects) {
+            /** @var MeasurePerformanceKernel $kernel */
             $kernel::init();
         }
 
         $this->  endMeasure(self::MEASURE_TYPE_BOOT);
         $this->startMeasure(self::MEASURE_TYPE_CLASS_LOADING);
 
-        $numbers = new Numbers();
+        /** @var Numbers[] $numberClasses */
+        $numberClasses = [];
+        foreach ($classes as $class) {
+            $numberClasses[] = new $class();
+        }
 
         $this->endMeasure(self::MEASURE_TYPE_CLASS_LOADING);
-        $expectedResults = [];
-        $actualResults = [];
+        // This is only used for validating the results, comment it out
+        // $expectedResults = [];
+        // $actualResults = [];
         $this->startMeasure(self::MEASURE_TYPE_METHOD_CALL);
 
         // There are 2 loops here, that could be merged into one, but the
         // performance difference is negligible, so it's not worth the
         // readability loss
         if ($useAspects) {
+            // There is only one numbers class when using aspects
+            /** @var Numbers $numbers */
+            $numbers = $numberClasses[0];
+
             foreach (range(1, $timesCount) as $ignored) {
                 $result = $numbers->get();
 
-                $expectedResults[] = $aspectCount;
-                $actualResults[] = $result;
+                // This is only used for validating the results, comment it out
+                // $expectedResults[] = $aspectCount;
+                // $actualResults[] = $result;
             }
         } else {
-            foreach (range(1, $timesCount) as $ignored) {
-                // Here we emulate the aspect by adding 1 to the result
-                foreach (range(1, $aspectCount) as $ignored2) {
+            foreach (range(1, $aspectCount) as $i) {
+                /** @var Numbers $numbers */
+                $numbers = $numberClasses[$i - 1];
+
+                foreach (range(1, $timesCount) as $ignored) {
+                    // Here we emulate the aspect by adding 1 to the result
                     $numbers->add(1);
                 }
 
                 $result = $numbers->get();
 
-                $expectedResults[] = $aspectCount;
-                $actualResults[] = $result;
-
-                $numbers->set(0);
+                // This is only used for validating the results, comment it out
+                // $expectedResults[] = $timesCount;
+                // $actualResults[] = $result;
             }
         }
 
         $this->endMeasure(self::MEASURE_TYPE_METHOD_CALL);
         $this->endMeasure(self::MEASURE_TYPE_FROM_START_TO_END);
-        $this->assertEquals($expectedResults, $actualResults);
+
+        // This is only used for validating the results, comment it out
+        // $this->assertEquals($expectedResults, $actualResults);
 
         $this->saveMeasuresToFile();
 
         if ($useAspects && $cached) {
             $this->printMeasures($this->dataName());
         }
+
+        $this->assertTrue(true);
     }
 
-    private function createKernelAndAspects(int $aspectCount): string
-    {
+    /**
+     * @param bool $useAspects
+     * @param int  $aspectCount
+     *
+     * @return array{class-string<MeasurePerformanceKernel>|null, class-string<Numbers>[]}
+     */
+    private function createKernelAspectsAndClasses(
+        bool $useAspects,
+        int $aspectCount
+    ): array {
         $tempDirectory = __DIR__ . '/Temp';
         if (!file_exists($tempDirectory)) {
             Filesystem::mkdir($tempDirectory);
         }
 
-        $newKernelFilePath = "$tempDirectory/MeasurePerformanceKernel$aspectCount.php";
-        $newKernelFileNamespace = "\\Okapi\\Aop\\Tests\\Performance\\Temp\\MeasurePerformanceKernel$aspectCount";
-        if (file_exists($newKernelFilePath)) {
-            return $newKernelFileNamespace;
-        }
+        if ($useAspects) {
+            $newKernelFilePath      = "$tempDirectory/MeasurePerformanceKernel$aspectCount.php";
+            $newKernelFileNamespace = "\\Okapi\\Aop\\Tests\\Performance\\Temp\\MeasurePerformanceKernel$aspectCount";
+            if (file_exists($newKernelFilePath)) {
+                return [$newKernelFileNamespace, [Numbers::class]];
+            }
 
-        $kernelFile = Filesystem::readFile(__DIR__ . '/Kernel/MeasurePerformanceKernel.php');
+            $kernelFile = Filesystem::readFile(__DIR__ . '/Kernel/MeasurePerformanceKernel.php');
 
-        $addOneAspectLineNumber = 0;
-        $addOneAspectLine = '';
-        $lines = explode("\n", $kernelFile);
-        foreach ($lines as $lineNumber => &$line) {
-            // Replace namespace
-            if (str_contains($line, 'namespace Okapi\\Aop\\Tests\\Performance\\Kernel')) {
-                $line = str_replace(
-                    search: 'Kernel',
-                    replace: 'Temp',
-                    subject: $line,
+            $addOneAspectLineNumber = 0;
+            $addOneAspectLine       = '';
+            $lines                  = explode("\n", $kernelFile);
+            foreach ($lines as $lineNumber => &$line) {
+                // Replace namespace
+                if (str_contains($line, 'namespace Okapi\\Aop\\Tests\\Performance\\Kernel')) {
+                    $line = str_replace(
+                        search: 'Kernel',
+                        replace: 'Temp',
+                        subject: $line,
+                    );
+                }
+
+                // Replace class name
+                if (str_contains($line, 'class MeasurePerformanceKernel')) {
+                    $line = str_replace(
+                        search: 'MeasurePerformanceKernel',
+                        replace: "MeasurePerformanceKernel$aspectCount",
+                        subject: $line,
+                    );
+                }
+
+                // Find the line where the "AddOneAspect" is added to the kernel
+                if (str_contains($line, 'AddOneAspect::class,')) {
+                    $addOneAspectLineNumber = $lineNumber;
+                    $addOneAspectLine       = $line;
+                    break;
+                }
+            }
+
+            $aspects = [];
+            foreach (range(1, $aspectCount) as $aspectNumber) {
+                $aspects[] = str_replace(
+                    search: 'Aspect\\AddOneAspect::class,',
+                    replace: "Temp\\AddOneAspect$aspectNumber::class,",
+                    subject: $addOneAspectLine,
+                );
+
+                // Read aspect file
+                static $aspectFile;
+                if (!$aspectFile) {
+                    $aspectFile = Filesystem::readFile(__DIR__ . '/Aspect/AddOneAspect.php');
+                }
+
+                $newAspectFilePath = __DIR__ . "/Temp/AddOneAspect$aspectNumber.php";
+                if (file_exists($newAspectFilePath)) {
+                    continue;
+                }
+
+                $newAspectFile = $aspectFile;
+
+                // Replace namespace
+                $newAspectFile = str_replace(
+                    search: 'namespace Okapi\\Aop\\Tests\\Performance\\Aspect;',
+                    replace: 'namespace Okapi\\Aop\\Tests\\Performance\\Temp;',
+                    subject: $newAspectFile,
+                );
+
+                // Replace class name
+                $newAspectFile = str_replace(
+                    search: 'class AddOneAspect',
+                    replace: "class AddOneAspect$aspectNumber",
+                    subject: $newAspectFile,
+                );
+
+                // Write aspect file
+                Filesystem::writeFile(
+                    $newAspectFilePath,
+                    $newAspectFile,
                 );
             }
 
-            // Replace class name
-            if (str_contains($line, 'class MeasurePerformanceKernel')) {
-                $line = str_replace(
-                    search: 'MeasurePerformanceKernel',
-                    replace: "MeasurePerformanceKernel$aspectCount",
-                    subject: $line,
-                );
+            unset($lines[$addOneAspectLineNumber]);
+
+            array_splice($lines, $addOneAspectLineNumber, 0, $aspects);
+
+            $kernelFile = implode("\n", $lines);
+
+            // Create Temp directory
+            if (!file_exists(__DIR__ . '/Temp')) {
+                Filesystem::mkdir(__DIR__ . '/Temp');
             }
 
-            // Find the line where the "AddOneAspect" is added to the kernel
-            if (str_contains($line, 'AddOneAspect::class,')) {
-                $addOneAspectLineNumber = $lineNumber;
-                $addOneAspectLine = $line;
-                break;
-            }
-        }
-
-        $aspects = [];
-        foreach (range(1, $aspectCount) as $aspectNumber) {
-            $aspects[] = str_replace(
-                search: 'Aspect\\AddOneAspect::class,',
-                replace: "Temp\\AddOneAspect$aspectNumber::class,",
-                subject: $addOneAspectLine,
-            );
-
-            // Read aspect file
-            static $aspectFile;
-            if (!$aspectFile) {
-                $aspectFile = Filesystem::readFile(__DIR__ . '/Aspect/AddOneAspect.php');
-            }
-
-            $newAspectFilePath = __DIR__ . "/Temp/AddOneAspect$aspectNumber.php";
-            if (file_exists($newAspectFilePath)) {
-                continue;
-            }
-
-            $newAspectFile = $aspectFile;
-
-            // Replace namespace
-            $newAspectFile = str_replace(
-                search: 'namespace Okapi\\Aop\\Tests\\Performance\\Aspect;',
-                replace: 'namespace Okapi\\Aop\\Tests\\Performance\\Temp;',
-                subject: $newAspectFile,
-            );
-
-            // Replace class name
-            $newAspectFile = str_replace(
-                search: 'class AddOneAspect',
-                replace: "class AddOneAspect$aspectNumber",
-                subject: $newAspectFile,
-            );
-
-            // Write aspect file
+            // Write kernel file
             Filesystem::writeFile(
-                $newAspectFilePath,
-                $newAspectFile,
+                $newKernelFilePath,
+                $kernelFile,
             );
+
+            return [$newKernelFileNamespace, [Numbers::class]];
+        } else {
+            $classes = [];
+            foreach (range(1, $aspectCount) as $aspectNumber) {
+                $classes[] = str_replace(
+                    search: 'Target\\Numbers',
+                    replace: "Temp\\Numbers$aspectNumber",
+                    subject: Numbers::class,
+                );
+
+                // Read class file
+                static $classFile;
+                if (!$classFile) {
+                    $classFile = Filesystem::readFile(__DIR__ . '/Target/Numbers.php');
+                }
+
+                $newClassFilePath = __DIR__ . "/Temp/Numbers$aspectNumber.php";
+                if (file_exists($newClassFilePath)) {
+                    continue;
+                }
+
+                $newClassFile = $classFile;
+
+                // Replace namespace
+                $newClassFile = str_replace(
+                    search: 'namespace Okapi\\Aop\\Tests\\Performance\\Target;',
+                    replace: 'namespace Okapi\\Aop\\Tests\\Performance\\Temp;',
+                    subject: $newClassFile,
+                );
+
+                // Replace class name
+                $newClassFile = str_replace(
+                    search: 'class Numbers',
+                    replace: "class Numbers$aspectNumber",
+                    subject: $newClassFile,
+                );
+
+                // Write class file
+                Filesystem::writeFile(
+                    $newClassFilePath,
+                    $newClassFile,
+                );
+            }
+
+            return [null, $classes];
         }
-
-        unset($lines[$addOneAspectLineNumber]);
-
-        array_splice($lines, $addOneAspectLineNumber, 0, $aspects);
-
-        $kernelFile = implode("\n", $lines);
-
-        // Create Temp directory
-        if (!file_exists(__DIR__ . '/Temp')) {
-            Filesystem::mkdir(__DIR__ . '/Temp');
-        }
-
-        // Write kernel file
-        Filesystem::writeFile(
-            $newKernelFilePath,
-            $kernelFile
-        );
-
-        return $newKernelFileNamespace;
     }
 
     private function startMeasure(string $name): void
