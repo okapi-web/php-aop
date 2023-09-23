@@ -28,9 +28,9 @@ class MeasurePerformanceTest extends TestCase
     ];
 
     private const MEASURE_TYPE_FROM_START_TO_END = 'From Start to End';
-    private const MEASURE_TYPE_BOOT              = 'Boot Time (Kernel::init())';
+    private const MEASURE_TYPE_BOOT              = 'Boot Time - Kernel::init()';
     private const MEASURE_TYPE_CLASS_LOADING     = 'Class Loading Time';
-    private const MEASURE_TYPE_METHOD_CALL       = 'Method Call Time';
+    private const MEASURE_TYPE_EXECUTION         = 'Execution Time';
 
     private const START_TIME   = 'Start Time';
     private const END_TIME     = 'End Time';
@@ -40,7 +40,7 @@ class MeasurePerformanceTest extends TestCase
     private const METRIC_TYPE_TIME   = 'Time';
     private const METRIC_TYPE_MEMORY = 'Memory';
 
-    public static array $aspectCountAndTimesCount = [
+    public static array $aspectCountAndExecutionCount = [
         [1, 1],
         [5, 5],
         [20, 20],
@@ -60,7 +60,7 @@ class MeasurePerformanceTest extends TestCase
 
     /**
      * @return array Count of array should be:
-     *   <code>count($aspectCountAndTimesCount) * count($flags) + 1</code>
+     *   <code>count($aspectCountAndExecutionCount) * count($flags) + 1</code>
      *   <code>E.g. 13 * 3 + 1 = 40</code>
      */
     public static function dataProvider(): array
@@ -73,18 +73,18 @@ class MeasurePerformanceTest extends TestCase
 
         $data = [];
 
-        foreach (self::$aspectCountAndTimesCount as $count) {
+        foreach (self::$aspectCountAndExecutionCount as $count) {
             foreach ($flags as $measureType => $flag) {
                 $aspectCount = $count[0];
-                $timesCount = $count[1];
+                $executionCount = $count[1];
 
                 $aspectsLabel = $aspectCount === 1 ? 'aspect' : 'aspects';
-                $timesLabel = $timesCount === 1 ? 'time' : 'times';
-                $dataProviderLabel = "$measureType: $aspectCount $aspectsLabel, $timesCount $timesLabel";
+                $executionLabel = $executionCount === 1 ? 'execution' : 'executions';
+                $dataProviderLabel = "$measureType: $aspectCount $aspectsLabel, $executionCount $executionLabel";
 
                 $data[$dataProviderLabel] = [
                     'aspectCount' => $aspectCount,
-                    'timesCount' => $timesCount,
+                    'executionCount' => $executionCount,
                     'useAspects' => $flag['useAspects'],
                     'cached' => $flag['cached'],
                 ];
@@ -94,7 +94,7 @@ class MeasurePerformanceTest extends TestCase
         // Cleanup data
         $data['Cleanup'] = [
             'aspectCount' => 0,
-            'timesCount' => 0,
+            'executionCount' => 0,
             'useAspects' => false,
             'cached' => false,
         ];
@@ -107,16 +107,16 @@ class MeasurePerformanceTest extends TestCase
     #[DataProvider('dataProvider')]
     public function measurePerformance(
         int $aspectCount,
-        int $timesCount,
+        int $executionCount,
         bool $useAspects,
         bool $cached
     ): void {
-        $firstRun = $aspectCount === self::$aspectCountAndTimesCount[0][0]
-            && $timesCount === self::$aspectCountAndTimesCount[0][1]
+        $firstRun = $aspectCount === self::$aspectCountAndExecutionCount[0][0]
+            && $executionCount === self::$aspectCountAndExecutionCount[0][1]
             && !$useAspects
             && !$cached;
         $shouldCleanCache = $firstRun || ($useAspects && !$cached);
-        $lastRun = $aspectCount === 0 && $timesCount === 0 && !$useAspects && !$cached;
+        $lastRun = $aspectCount === 0 && $executionCount === 0 && !$useAspects && !$cached;
 
         if ($firstRun) {
             $this->cleanup();
@@ -162,7 +162,7 @@ class MeasurePerformanceTest extends TestCase
         // This is only used for validating the results, comment it out
         // $expectedResults = [];
         // $actualResults = [];
-        $this->startMeasure(self::MEASURE_TYPE_METHOD_CALL);
+        $this->startMeasure(self::MEASURE_TYPE_EXECUTION);
 
         // There are 2 loops here, that could be merged into one, but the
         // performance difference is negligible, so it's not worth the
@@ -172,7 +172,7 @@ class MeasurePerformanceTest extends TestCase
             /** @var Numbers $numbers */
             $numbers = $numberClasses[0];
 
-            foreach (range(1, $timesCount) as $ignored) {
+            foreach (range(1, $executionCount) as $ignored) {
                 $result = $numbers->get();
 
                 // This is only used for validating the results, comment it out
@@ -184,7 +184,7 @@ class MeasurePerformanceTest extends TestCase
                 /** @var Numbers $numbers */
                 $numbers = $numberClasses[$i - 1];
 
-                foreach (range(1, $timesCount) as $ignored) {
+                foreach (range(1, $executionCount) as $ignored) {
                     // Here we emulate the aspect by adding 1 to the result
                     $numbers->add(1);
                 }
@@ -192,12 +192,12 @@ class MeasurePerformanceTest extends TestCase
                 $result = $numbers->get();
 
                 // This is only used for validating the results, comment it out
-                // $expectedResults[] = $timesCount;
+                // $expectedResults[] = $executionCount;
                 // $actualResults[] = $result;
             }
         }
 
-        $this->endMeasure(self::MEASURE_TYPE_METHOD_CALL);
+        $this->endMeasure(self::MEASURE_TYPE_EXECUTION);
         $this->endMeasure(self::MEASURE_TYPE_FROM_START_TO_END);
 
         // This is only used for validating the results, comment it out
@@ -325,6 +325,8 @@ class MeasurePerformanceTest extends TestCase
                 $kernelFile,
             );
 
+            $this->dumpAutoload();
+
             return [$newKernelFileNamespace, [Numbers::class]];
         } else {
             $classes = [];
@@ -369,8 +371,22 @@ class MeasurePerformanceTest extends TestCase
                 );
             }
 
+            $this->dumpAutoload();
+
             return [null, $classes];
         }
+    }
+
+    private function dumpAutoload(): void
+    {
+        $workingDir = __DIR__ . '/../..';
+        $workingDir = (DIRECTORY_SEPARATOR === '\\')
+            ? str_replace('/', '\\', $workingDir)
+            : str_replace('\\', '/', $workingDir);
+
+        ob_start();
+        shell_exec("composer dump-autoload -d $workingDir -o -q");
+        ob_end_clean();
     }
 
     private function startMeasure(string $name): void
@@ -526,8 +542,8 @@ class MeasurePerformanceTest extends TestCase
         // Calculate difference
         $difference = $comparisonValue - $withoutAspectsValue;
 
-        // Time: 4 digits, Memory: 2 digits
-        $digits = $metricType === self::METRIC_TYPE_TIME ? 4 : 2;
+        // Time: 8 digits, Memory: 2 digits
+        $digits = $metricType === self::METRIC_TYPE_TIME ? 8 : 2;
 
         // Format digits
         $withoutAspectsValue = number_format($withoutAspectsValue, $digits);
