@@ -16,7 +16,7 @@ jobs:
         operating-system: [ ubuntu-latest ]
         php-version: [ '8.1', '8.2' ]
 
-    name: PHP ${{ matrix.php-version }} performance tests on ${{ matrix.operating-system }}
+    name: PHP ${{ matrix.php-version }} tests on ${{ matrix.operating-system }}
 
     steps:
       - name: Checkout Code
@@ -45,7 +45,7 @@ jobs:
         run: composer install --prefer-dist --no-progress
 
       - name: PHPUnit Tests
-        run: vendor/bin/phpunit --testsuite=Tests --coverage-clover ./tests/coverage.xml
+        run: vendor/bin/phpunit --testsuite=Tests --coverage-clover ./tests/coverage.xml --display-notices
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
