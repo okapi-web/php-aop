@@ -1,5 +1,5 @@
 <?php
-
+/** @noinspection PhpUnused */
 namespace Okapi\Aop\Tests\Performance\Aspect;
 
 use Okapi\Aop\Attributes\After;
