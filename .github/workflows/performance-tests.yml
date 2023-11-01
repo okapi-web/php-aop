@@ -15,7 +15,7 @@ jobs:
         operating-system: [ ubuntu-latest ]
         php-version: [ '8.1', '8.2' ]
 
-    name: PHP ${{ matrix.php-version }} test on ${{ matrix.operating-system }}
+    name: PHP ${{ matrix.php-version }} performance test on ${{ matrix.operating-system }}
 
     steps:
       - name: Checkout Code
@@ -45,4 +45,4 @@ jobs:
         run: composer install --prefer-dist --no-progress
 
       - name: PHPUnit Performance Tests
-        run: vendor/bin/phpunit --testsuite=Performance
+        run: vendor/bin/phpunit --testsuite=Performance --display-notices

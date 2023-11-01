@@ -19,9 +19,9 @@
         "php-aop"
     ],
     "scripts": {
-        "test": "phpunit --testsuite=Tests",
-        "test-performance": "phpunit --testsuite=Performance",
-        "test-coverage": "phpunit --coverage-html tests/coverage"
+        "test": "phpunit --testsuite=Tests --display-notices",
+        "test-performance": "phpunit --testsuite=Performance --display-notices",
+        "test-coverage": "phpunit --testsuite=Tests --coverage-html tests/coverage --display-notices"
     },
     "require": {
         "php": ">=8.1",
