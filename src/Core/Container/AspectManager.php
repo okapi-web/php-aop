@@ -2,10 +2,12 @@
 /** @noinspection PhpPropertyOnlyWrittenInspection */
 namespace Okapi\Aop\Core\Container;
 
+use Closure;
 use DI\Attribute\Inject;
 use Error;
 use Exception;
 use Okapi\Aop\Attributes\Aspect;
+use Okapi\Aop\Component\ComponentType;
 use Okapi\Aop\Core\Attributes\Base\BaseAdvice;
 use Okapi\Aop\Core\Exception\Aspect\AspectNotFoundException;
 use Okapi\Aop\Core\Exception\Aspect\InvalidAspectClassNameException;
@@ -53,6 +55,11 @@ class AspectManager
      */
     private array $adviceContainers = [];
 
+    /**
+     * @var null|Closure(class-string, ): object
+     */
+    private ?Closure $dependencyInjectionHandler = null;
+
     // region Pre-Initialization
 
     /**
@@ -73,6 +80,15 @@ class AspectManager
     // endregion
 
     // region Initialization
+
+    /**
+     * @param null|(Closure(class-string, ComponentType): object) $dependencyInjectionHandler
+     */
+    public function registerCustomDependencyInjectionHandler(
+        ?Closure $dependencyInjectionHandler
+    ): void {
+        $this->dependencyInjectionHandler = $dependencyInjectionHandler;
+    }
 
     /**
      * Register the aspect container.
@@ -123,10 +139,17 @@ class AspectManager
         }
 
         // Instantiate the aspect
-        try {
-            $aspectInstance = DI::make($aspectClassName);
-        } catch (Error|Exception) {
-            throw new AspectNotFoundException($aspectClassName);
+        if ($this->dependencyInjectionHandler) {
+            $aspectInstance = ($this->dependencyInjectionHandler)(
+                $aspectClassName,
+                ComponentType::ASPECT,
+            );
+        } else {
+            try {
+                $aspectInstance = DI::make($aspectClassName);
+            } catch (Error|Exception) {
+                throw new AspectNotFoundException($aspectClassName);
+            }
         }
 
         // Create a reflection of the aspect

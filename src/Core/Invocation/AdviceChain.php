@@ -102,7 +102,7 @@ class AdviceChain
             $result = $adviceRefMethod->invoke($aspectInstance, $invocation);
 
             // Check if the advice method will return a value
-            $hasReturnValue = $adviceRefMethod->getReturnType()?->getName() !== 'void';
+            $hasReturnValue = $adviceRefMethod->getReturnType()?->__toString() !== 'void';
 
             // 1. Accept return value of advice method OR
             // 2. Check if the advice method used "setResult()" OR

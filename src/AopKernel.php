@@ -5,13 +5,13 @@
  */
 namespace Okapi\Aop;
 
+use Closure;
 use DI\Attribute\Inject;
 use Okapi\Aop\Attributes\Aspect;
+use Okapi\Aop\Component\ComponentType;
 use Okapi\Aop\Core\AutoloadInterceptor\ClassLoader;
-use Okapi\Aop\Core\Cache\CachePaths;
-use Okapi\Aop\Core\Cache\CacheStateFactory;
-use Okapi\Aop\Core\Cache\CacheStateManager;
-use Okapi\Aop\Core\Container\AspectManager;
+use Okapi\Aop\Core\Cache\{CachePaths, CacheStateFactory, CacheStateManager};
+use Okapi\Aop\Core\Container\{AspectManager, TransformerManager};
 use Okapi\Aop\Core\Options;
 use Okapi\Aop\Core\Processor\AspectProcessor;
 use Okapi\Aop\Core\Transformer\NetteReflectionWithBetterReflection;
@@ -20,6 +20,7 @@ use Okapi\CodeTransformer\Core\AutoloadInterceptor\ClassLoader as CodeTransforme
 use Okapi\CodeTransformer\Core\Cache\CachePaths as CodeTransformerCachePaths;
 use Okapi\CodeTransformer\Core\Cache\CacheStateFactory as CodeTransformerCacheStateFactory;
 use Okapi\CodeTransformer\Core\Cache\CacheStateManager as CodeTransformerCacheStateManager;
+use Okapi\CodeTransformer\Core\Container\TransformerManager as CodeTransformerTransformerManager;
 use Okapi\CodeTransformer\Core\DI;
 use Okapi\CodeTransformer\Core\Options as CodeTransformerOptions;
 use Okapi\CodeTransformer\Core\Processor\TransformerProcessor;
@@ -99,6 +100,9 @@ abstract class AopKernel extends CodeTransformerKernel
         DI::set(CodeTransformerCacheStateManager::class, decorate(function () {
             return DI::get(CacheStateManager::class);
         }));
+        DI::set(CodeTransformerTransformerManager::class, decorate(function () {
+            return DI::get(TransformerManager::class);
+        }));
     }
 
     /**
@@ -118,11 +122,25 @@ abstract class AopKernel extends CodeTransformerKernel
     }
 
     /**
-     * @inheritDoc
+     * Custom dependency injection handler.
+     *
+     * Pass a closure that takes an aspect/transformer class name as the
+     * argument and returns an aspect/transformer instance.
+     *
+     * @return null|Closure(class-string, ComponentType): object
      */
+    protected function dependencyInjectionHandler(): ?Closure
+    {
+        // Override this method to configure the dependency injection handler
+
+        return null;
+    }
+
     protected function registerServices(): void
     {
-        // Manage the user-defined aspects
+        $this->aspectManager->registerCustomDependencyInjectionHandler(
+            $this->dependencyInjectionHandler(),
+        );
         $this->aspectManager->register();
 
         parent::registerServices();
