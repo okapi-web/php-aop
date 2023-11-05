@@ -36,6 +36,8 @@ class ClassLoader extends CodeTransformerClassLoader
      * @param class-string $namespacedClass
      *
      * @return false|string
+     *
+     * @noinspection PhpStatementHasEmptyBodyInspection
      */
     public function findFile($namespacedClass): false|string
     {

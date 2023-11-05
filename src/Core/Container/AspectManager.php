@@ -112,7 +112,9 @@ class AspectManager
     {
         // Check if the aspect is already loaded
         if (array_key_exists($aspectClassName, $this->aspectAdviceContainers)) {
+            // @codeCoverageIgnoreStart
             return;
+            // @codeCoverageIgnoreEnd
         }
 
         // Validate the aspect
