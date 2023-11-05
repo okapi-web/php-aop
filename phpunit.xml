@@ -7,6 +7,7 @@
   <testsuites>
     <testsuite name="Tests">
       <directory>tests/Functional</directory>
+      <directory>tests/Integration</directory>
     </testsuite>
 
     <testsuite name="Performance">
