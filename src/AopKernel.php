@@ -30,6 +30,13 @@ use function DI\decorate;
  *
  * The AOP Kernel is the heart of the AOP library.
  * It manages an environment for Aspect Oriented Programming.
+ *
+ * 1. Extend this class and define a list of aspects in the {@link $aspects}
+ *    property.
+ * 2. Call the {@link init()} method early in the application lifecycle.
+ *
+ * If you want to modify the kernel options dynamically, override the
+ * {@link configureOptions()} method.
  */
 abstract class AopKernel extends CodeTransformerKernel
 {

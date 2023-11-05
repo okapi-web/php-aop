@@ -6,6 +6,7 @@ use DI\Attribute\Inject;
 use Okapi\Aop\Core\Matcher\AspectMatcher;
 use Okapi\CodeTransformer\Core\AutoloadInterceptor;
 use Okapi\CodeTransformer\Core\AutoloadInterceptor\ClassLoader as CodeTransformerClassLoader;
+use Okapi\CodeTransformer\Core\Options\Environment;
 use Okapi\CodeTransformer\Core\StreamFilter;
 use Okapi\CodeTransformer\Core\StreamFilter\FilterInjector;
 use Okapi\Path\Path;
@@ -35,6 +36,8 @@ class ClassLoader extends CodeTransformerClassLoader
      * @param class-string $namespacedClass
      *
      * @return false|string
+     *
+     * @noinspection PhpStatementHasEmptyBodyInspection
      */
     public function findFile($namespacedClass): false|string
     {
@@ -58,10 +61,25 @@ class ClassLoader extends CodeTransformerClassLoader
         // Query cache state
         $cacheState = $this->cacheStateManager->queryCacheState($filePath);
 
-        // If the cache is cached and up to date
-        if ($cacheState?->isFresh() && !$this->options->isDebug()) {
+        // When debugging, bypass the caching mechanism
+        if ($this->options->isDebug()) {
+            // ...
+        }
+
+        // In production mode, use the cache without checking if it is fresh
+        elseif ($this->options->getEnvironment() === Environment::PRODUCTION
+            && $cacheState
+        ) {
             // Use the cached file if aspects have been applied
             // Or return the original file if no aspects have been applied
+            return $cacheState->getFilePath() ?? $filePath;
+        }
+
+        // In development mode, check if the cache is fresh
+        elseif ($this->options->getEnvironment() === Environment::DEVELOPMENT
+            && $cacheState
+            && $cacheState->isFresh()
+        ) {
             return $cacheState->getFilePath() ?? $filePath;
         }
 

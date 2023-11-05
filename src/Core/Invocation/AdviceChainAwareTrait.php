@@ -28,14 +28,12 @@ trait AdviceChainAwareTrait
     /**
      * Call next advice or target method.
      *
-     * @param bool $allowRepeatedCalls <br>If {@see true}, the original method
-     *                                 will be called again.<br>
-     *                                 If {@see false}, the original method will
-     *                                 be called only once and every subsequent
-     *                                 call will return the same result.<br>
-     *                                 Default: {@see false}<br>
-     *                                 <b>WARNING: May cause unexpected behavior
-     *                                 and side effects.</b>
+     * @param bool $allowRepeatedCalls
+     *   <br>If {@see true}, the original method will be called again.<br>
+     *   If {@see false}, the original method will be called only once and every
+     *   subsequent call will return the same result.<br>
+     *   Default: {@see false}<br>
+     *   <b>WARNING: May cause unexpected behavior and side effects.</b>
      *
      * @return mixed
      */

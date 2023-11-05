@@ -104,7 +104,6 @@ composer require okapi/aop
 - [How it works](#how-it-works)
 - [Testing](#testing)
 - [Contributing](#contributing)
-- [Roadmap](#roadmap)
 
 
 
@@ -790,12 +789,6 @@ class EverythingAspect
     }
 }
 ```
-
-
-
-## Roadmap
-
-See [Roadmap](https://github.com/okapi-web/php-aop/issues/9) for more details.
 
 
 
