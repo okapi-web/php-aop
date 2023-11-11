@@ -4,8 +4,6 @@ namespace Okapi\Aop\Core\Transform;
 
 use DI\Attribute\Inject;
 use Microsoft\PhpParser\Node;
-use Microsoft\PhpParser\Node\SourceFileNode;
-use Microsoft\PhpParser\Node\Statement\ClassDeclaration;
 use Microsoft\PhpParser\Token;
 use Microsoft\PhpParser\TokenKind;
 use Okapi\Aop\Core\Cache\CachePaths;
@@ -37,9 +35,9 @@ class ProxiedClassModifier
     /**
      * The source file node.
      *
-     * @var SourceFileNode
+     * @var Node\SourceFileNode
      */
-    private SourceFileNode $sourceFileNode;
+    private Node\SourceFileNode $sourceFileNode;
 
     /**
      * The proxied class name.
@@ -63,6 +61,11 @@ class ProxiedClassModifier
     private array $nodeCallbacks = [];
 
     /**
+     * @var (Node|Token)[]
+     */
+    private array $alreadyProcessed = [];
+
+    /**
      * ProxiedClassModifier constructor.
      *
      * @param Metadata $metadata
@@ -77,6 +80,16 @@ class ProxiedClassModifier
         $this->proxiedClassName = $this->code->getClassName() . $cachePaths::PROXIED_SUFFIX;
     }
 
+    /** @noinspection PhpUnused Is used at runtime for proxied classes */
+    public static function resolveStaticClass(string $staticClass): string
+    {
+        return str_replace(
+            CachePaths::PROXIED_SUFFIX,
+            '',
+            $staticClass,
+        );
+    }
+
     /**
      * Modify the proxied class.
      *
@@ -88,6 +101,7 @@ class ProxiedClassModifier
         $this->unFinalMethods();
         $this->changeVisibility();
         $this->replaceSelfType();
+        $this->replaceMagicConstants();
 
         $sourceFileNode = $this->metadata->code->getSourceFileNode();
 
@@ -106,6 +120,22 @@ class ProxiedClassModifier
         }
     }
 
+    private function edit(
+        Node|Token $nodeOrToken,
+        string $replacement,
+    ): void {
+        if (in_array($nodeOrToken, $this->alreadyProcessed, true)) {
+            return;
+        }
+
+        $this->code->edit(
+            $nodeOrToken,
+            $replacement,
+        );
+
+        $this->alreadyProcessed[] = $nodeOrToken;
+    }
+
     /**
      * Convert the proxied class to a class that extends the proxied class.
      *
@@ -114,11 +144,11 @@ class ProxiedClassModifier
     private function convertToProxy(): void
     {
         // Find the class declaration
-        $node = $this->sourceFileNode->getFirstDescendantNode(ClassDeclaration::class);
-        assert($node instanceof ClassDeclaration);
+        $node = $this->sourceFileNode->getFirstDescendantNode(Node\Statement\ClassDeclaration::class);
+        assert($node instanceof Node\Statement\ClassDeclaration);
 
         // Replace the class name
-        $this->code->edit(
+        $this->edit(
             $node->name,
             $this->proxiedClassName,
         );
@@ -139,7 +169,7 @@ class ProxiedClassModifier
     {
         $this->tokenCallbacks[] = function (Token $token) {
             if ($token->kind === TokenKind::FinalKeyword) {
-                $this->code->edit($token, '');
+                $this->edit($token, '');
             }
         };
     }
@@ -155,13 +185,15 @@ class ProxiedClassModifier
             if ($token->kind === TokenKind::PrivateKeyword
                 || $token->kind === TokenKind::ProtectedKeyword
             ) {
-                $this->code->edit(
+                $this->edit(
                     $token,
                     'public',
                 );
             }
         };
     }
+
+    // region Self Types
 
     /**
      * Replace self type with the original class name.
@@ -218,28 +250,30 @@ class ProxiedClassModifier
 
         // Self
         if ($typeText === 'self') {
-            $this->code->edit(
+            $this->edit(
                 $qualifiedName,
                 $this->proxiedClassName,
             );
-        } else {
-            // Other classes that have a proxy
-            /** @noinspection PhpUnhandledExceptionInspection */
-            $fullClassName  = '\\' . $qualifiedName->getResolvedName()
-                ->getFullyQualifiedNameText();
-            $proxyClassName = $fullClassName
-                . $this->cachePaths::PROXIED_SUFFIX;
 
-            // Autoload the class with class_exists,
-            // so we can check if the proxy exists
-            if (class_exists($fullClassName)
-                && class_exists($proxyClassName)
-            ) {
-                $this->code->edit(
-                    $qualifiedName,
-                    $proxyClassName,
-                );
-            }
+            return;
+        }
+
+        // Other classes that have a proxy
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $fullClassName  = '\\' . $qualifiedName->getResolvedName()
+            ->getFullyQualifiedNameText();
+        $proxyClassName = $fullClassName
+            . $this->cachePaths::PROXIED_SUFFIX;
+
+        // Autoload the class with class_exists,
+        // so we can check if the proxy exists
+        if (class_exists($fullClassName)
+            && class_exists($proxyClassName)
+        ) {
+            $this->edit(
+                $qualifiedName,
+                $proxyClassName,
+            );
         }
     }
 
@@ -255,7 +289,7 @@ class ProxiedClassModifier
     ): void {
         // Self
         if ($qualifiedName->getText() === 'self') {
-            $this->code->edit(
+            $this->edit(
                 $qualifiedName,
                 $this->proxiedClassName,
             );
@@ -272,9 +306,86 @@ class ProxiedClassModifier
     private function replaceObjectCreationSelfType(
         Node\Expression\ObjectCreationExpression $objectCreationExpression,
     ): void {
-        $this->code->edit(
+        $this->edit(
             $objectCreationExpression->classTypeDesignator,
             '\\' . $this->code->getNamespacedClass(),
         );
+    }
+
+    // endregion
+
+    /**
+     * Replace magic constants like {@see __DIR__} to their actual path.
+     *
+     * @return void
+     *
+     * @see https://www.php.net/manual/language.constants.magic.php
+     */
+    private function replaceMagicConstants(): void
+    {
+        $this->nodeCallbacks[] = function (Node $node) {
+            if ($node instanceof Node\QualifiedName) {
+                $text = $node->getText();
+
+                switch ($text) {
+                    case '__DIR__':
+                        $originalParentDir = dirname($this->getOriginalFileDir());
+
+                        $this->edit($node, "'$originalParentDir'");
+                        break;
+
+                    case '__FILE__':
+                        $originalFileDir = $this->getOriginalFileDir();
+
+                        $this->edit($node, "'$originalFileDir'");
+                        break;
+
+                    case '__CLASS__':
+                        $originalNamespacedClassName = $this->code->getNamespacedClass();
+
+                        $this->edit($node, "'$originalNamespacedClassName'");
+                        break;
+
+                    case '__METHOD__':
+                        $methodNode = $node->getFirstAncestor(Node\MethodDeclaration::class);
+                        if (!$methodNode) {
+                            break;
+                        }
+                        assert($methodNode instanceof Node\MethodDeclaration);
+
+                        $originalNamespacedClassName = $this->code->getNamespacedClass();
+                        $originalMethodName = $methodNode->getName();
+
+                        $this->edit(
+                            $node,
+                            "'$originalNamespacedClassName::$originalMethodName'",
+                        );
+                        break;
+
+                    case 'self':
+                        $originalClassName = $this->code->getClassName();
+
+                        $this->edit(
+                            $node,
+                            $originalClassName,
+                        );
+                        break;
+                }
+            }
+
+            if ($node instanceof Node\Expression\ScopedPropertyAccessExpression) {
+                if ($node->getText() === 'static::class') {
+                    $this->edit(
+                        $node,
+                        '\\' . self::class . '::resolveStaticClass(static::class)',
+                    );
+                }
+            }
+        };
+    }
+
+    private function getOriginalFileDir(): string
+    {
+        return $this->metadata->uri;
     }
 }
