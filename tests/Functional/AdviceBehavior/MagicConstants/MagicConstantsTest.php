@@ -422,7 +422,7 @@ class MagicConstantsTest extends TestCase
     // Normalize path
     private function np(string $path): string
     {
-        return str_replace('\\', DIRECTORY_SEPARATOR, $path);
+        return str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $path);
     }
 
     private function rootPath(): string
