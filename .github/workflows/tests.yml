@@ -3,6 +3,8 @@ name: PHP Tests
 on:
   push:
     branches: [ "master" ]
+  pull_request_review:
+    types: [ submitted, edited ]
 
 permissions:
   contents: read
