@@ -6,6 +6,13 @@ on:
   pull_request_review:
     types: [ submitted, edited ]
 
+  pull_request:
+    types:
+      - opened
+      - edited
+    branches:
+      - master
+
 permissions:
   contents: read
 
