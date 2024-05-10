@@ -6,6 +6,7 @@ use DI\Attribute\Inject;
 use Okapi\Aop\Core\Matcher\AspectMatcher;
 use Okapi\CodeTransformer\Core\AutoloadInterceptor;
 use Okapi\CodeTransformer\Core\AutoloadInterceptor\ClassLoader as CodeTransformerClassLoader;
+use Okapi\CodeTransformer\Core\CachedStreamFilter;
 use Okapi\CodeTransformer\Core\Options\Environment;
 use Okapi\CodeTransformer\Core\StreamFilter;
 use Okapi\CodeTransformer\Core\StreamFilter\FilterInjector;
@@ -71,8 +72,22 @@ class ClassLoader extends CodeTransformerClassLoader
             && $cacheState
         ) {
             // Use the cached file if aspects have been applied
+            if ($cacheFilePath = $cacheState->getFilePath()) {
+                $this->classContainer->addClassContext(
+                    $filePath,
+                    $namespacedClass,
+                    $cacheFilePath,
+                );
+
+                // For cached files, the debugger will have trouble finding the
+                // original file, that's why we rewrite the file path with a PHP
+                // stream filter
+                /** @see CachedStreamFilter::filter() */
+                return $this->filterInjector->rewriteCached($filePath);
+            }
+
             // Or return the original file if no aspects have been applied
-            return $cacheState->getFilePath() ?? $filePath;
+            return $filePath;
         }
 
         // In development mode, check if the cache is fresh
@@ -80,17 +95,27 @@ class ClassLoader extends CodeTransformerClassLoader
             && $cacheState
             && $cacheState->isFresh()
         ) {
-            return $cacheState->getFilePath() ?? $filePath;
+            if ($cacheFilePath = $cacheState->getFilePath()) {
+                $this->classContainer->addClassContext(
+                    $filePath,
+                    $namespacedClass,
+                    $cacheFilePath,
+                );
+
+                return $this->filterInjector->rewriteCached($filePath);
+            }
+
+            return $filePath;
         }
 
 
         // Match the aspects
-        $matchedAspects = $this->aspectMatcher->matchByClassLoader(
+        $matchedAspects = $this->aspectMatcher->matchByClassLoaderAndStore(
             $namespacedClass,
         );
 
         // Match the transformer
-        $matchedTransformers = $this->transformerMatcher->match(
+        $matchedTransformers = $this->transformerMatcher->matchAndStore(
             $namespacedClass,
             $filePath,
         );
@@ -101,7 +126,7 @@ class ClassLoader extends CodeTransformerClassLoader
         }
 
         // Add the class to store the file path
-        $this->classContainer->addNamespacedClassPath($filePath, $namespacedClass);
+        $this->classContainer->addClassContext($filePath, $namespacedClass);
 
         // Replace the file path with a PHP stream filter
         /** @see StreamFilter::filter() */

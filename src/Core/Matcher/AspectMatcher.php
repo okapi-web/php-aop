@@ -78,7 +78,7 @@ class AspectMatcher
      *
      * @return bool
      */
-    public function matchByClassLoader(string $namespacedClass): bool
+    public function matchByClassLoaderAndStore(string $namespacedClass): bool
     {
         // Get the reflection class
         $refClass = $this->reflectionHelper->getReflectionClass($namespacedClass);
