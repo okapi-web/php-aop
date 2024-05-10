@@ -3,8 +3,7 @@
 namespace Okapi\Aop\Tests;
 
 use Okapi\Aop\Core\AutoloadInterceptor\ClassLoader;
-use Okapi\Aop\Core\Cache\CachePaths;
-use Okapi\CodeTransformer\Core\DI;
+use Okapi\CodeTransformer\Core\CachedStreamFilter;
 use Okapi\CodeTransformer\Core\StreamFilter;
 use Okapi\CodeTransformer\Core\StreamFilter\FilterInjector;
 use Okapi\Path\Path;
@@ -65,9 +64,13 @@ trait ClassLoaderMockTrait
 
     public function assertAspectLoadedFromCache(string $className): void
     {
-        $filePath     = $this->findOriginalClassMock($className);
-        $cachePaths   = DI::get(CachePaths::class);
-        $cachePath    = $cachePaths->getProxyCachePath($filePath);
+        $filePath = Path::resolve($this->findOriginalClassMock($className));
+
+        $cachePath =
+            FilterInjector::PHP_FILTER_READ .
+            CachedStreamFilter::CACHED_FILTER_ID . '/resource=' .
+            $filePath;
+
         $filePathMock = $this->findClassMock($className);
 
         Assert::assertEquals(
