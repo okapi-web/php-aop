@@ -218,18 +218,9 @@ class WovenClassBuilder
 
         $methodName = $refMethod->getName();
 
-        // ReadOnly Hack: https://github.com/nette/php-generator/issues/158
-        foreach ($refMethod->getParameters() as $refParameter) {
-            if ($refParameter->isPromoted()
-                && ($declaringClass = $refParameter->getDeclaringClass())
-                && ($refParameterName = $refParameter->getName())
-                && $declaringClass->hasProperty($refParameterName)
-                && ($property = $declaringClass->getProperty($refParameterName))
-                && $property->isReadOnly()
-            ) {
-                /** @var PromotedParameter $parameter */
-                $parameter = $method->getParameter($refParameterName);
-                $parameter->setReadOnly();
+        foreach ($method->getParameters() as $parameter) {
+            if ($parameter instanceof PromotedParameter) {
+                $parameter->setReadOnly(false);
             }
         }
 

@@ -99,6 +99,7 @@ class ProxiedClassModifier
     {
         $this->convertToProxy();
         $this->unFinalMethods();
+        $this->unReadOnlyClasses();
         $this->changeVisibility();
         $this->replaceSelfType();
         $this->replaceMagicConstants();
@@ -169,6 +170,15 @@ class ProxiedClassModifier
     {
         $this->tokenCallbacks[] = function (Token $token) {
             if ($token->kind === TokenKind::FinalKeyword) {
+                $this->edit($token, '');
+            }
+        };
+    }
+
+    private function unReadOnlyClasses(): void
+    {
+        $this->tokenCallbacks[] = function (Token $token) {
+            if ($token->kind === TokenKind::ReadonlyKeyword) {
                 $this->edit($token, '');
             }
         };
