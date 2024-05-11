@@ -3,7 +3,6 @@
 namespace Okapi\Aop\Core\Attributes\Base;
 
 use Okapi\Aop\Core\Attributes\AdviceType\MethodAdvice;
-use Okapi\Aop\Tests\Functional\MethodAdvice\Aspect\PerformanceAspect;
 use Okapi\Wildcards\Regex;
 
 /**
