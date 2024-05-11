@@ -203,17 +203,6 @@ class ProxiedClassModifier
     private function replaceSelfType(): void
     {
         $this->nodeCallbacks[] = function (Node $node) {
-            // Replace parameter object types with the proxied class name
-            if ($node instanceof Node\Parameter
-                && $node->typeDeclarationList instanceof Node\DelimitedList\QualifiedNameList
-            ) {
-                foreach ($node->typeDeclarationList->children as $type) {
-                    if ($type instanceof Node\QualifiedName) {
-                        $this->replaceParameterSelfType($type);
-                    }
-                }
-            }
-
             // Replace return object types with the proxied class name
             if ($node instanceof Node\MethodDeclaration
                 && $node->returnTypeList instanceof Node\DelimitedList\QualifiedNameList
@@ -232,49 +221,6 @@ class ProxiedClassModifier
                 }
             }
         };
-    }
-
-    /**
-     * Replace the parameter self type with the proxied class name.
-     *
-     * @param Node\QualifiedName $qualifiedName
-     *
-     * @return void
-     *
-     * @noinspection PhpDocMissingThrowsInspection
-     */
-    private function replaceParameterSelfType(
-        Node\QualifiedName $qualifiedName,
-    ): void {
-        $typeText = $qualifiedName->getText();
-
-        // Self
-        if ($typeText === 'self') {
-            $this->edit(
-                $qualifiedName,
-                $this->proxiedClassName,
-            );
-
-            return;
-        }
-
-        // Other classes that have a proxy
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $fullClassName  = '\\' . $qualifiedName->getResolvedName()
-            ->getFullyQualifiedNameText();
-        $proxyClassName = $fullClassName
-            . $this->cachePaths::PROXIED_SUFFIX;
-
-        // Autoload the class with class_exists,
-        // so we can check if the proxy exists
-        if (class_exists($fullClassName)
-            && class_exists($proxyClassName)
-        ) {
-            $this->edit(
-                $qualifiedName,
-                $proxyClassName,
-            );
-        }
     }
 
     /**
