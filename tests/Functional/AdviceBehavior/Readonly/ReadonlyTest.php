@@ -3,6 +3,7 @@
 namespace Okapi\Aop\Tests\Functional\AdviceBehavior\Readonly;
 
 use Okapi\Aop\Tests\ClassLoaderMockTrait;
+use Okapi\Aop\Tests\Functional\AdviceBehavior\Readonly\Aspect\ReadonlyAspect;
 use Okapi\Aop\Tests\Functional\AdviceBehavior\Readonly\Target\ReadonlyClass;
 use Okapi\Aop\Tests\Functional\AdviceBehavior\Readonly\Target\ReadonlyPromotedProperties;
 use Okapi\Aop\Tests\Util;
@@ -14,6 +15,9 @@ class ReadonlyTest extends TestCase
 {
     use ClassLoaderMockTrait;
 
+    /**
+     * @see ReadonlyAspect::doNothing()
+     */
     public function testReadonlyClass(): void
     {
         if (PHP_VERSION_ID < 80200) {
