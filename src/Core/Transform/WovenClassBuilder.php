@@ -9,6 +9,7 @@ use Nette\PhpGenerator\Factory;
 use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\Parameter;
 use Nette\PhpGenerator\PhpNamespace;
+use Nette\PhpGenerator\PromotedParameter;
 use Nette\PhpGenerator\Property;
 use Nette\Utils\Type;
 use Okapi\Aop\Core\Cache\CachePaths;
@@ -18,6 +19,7 @@ use Okapi\Aop\Core\JoinPoint\JoinPoint;
 use Okapi\Aop\Core\JoinPoint\JoinPointInjector;
 use Okapi\CodeTransformer\Core\DI;
 use Okapi\CodeTransformer\Transformer\Code;
+use Roave\BetterReflection\Reflection\Adapter\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionMethod as BetterReflectionMethod;
 
 /**
@@ -206,11 +208,32 @@ class WovenClassBuilder
      * @param BetterReflectionMethod $refMethod
      *
      * @return Method
+     *
+     * @noinspection PhpDocMissingThrowsInspection
      */
     private function buildMethod(BetterReflectionMethod $refMethod): Method
     {
-        $method     = (new Factory)->fromMethodReflection($refMethod);
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $method = (new Factory)->fromMethodReflection(
+            new ReflectionMethod($refMethod),
+        );
+
         $methodName = $refMethod->getName();
+
+        // ReadOnly Hack: https://github.com/nette/php-generator/issues/158
+        foreach ($refMethod->getParameters() as $refParameter) {
+            if ($refParameter->isPromoted()
+                && ($declaringClass = $refParameter->getDeclaringClass())
+                && ($refParameterName = $refParameter->getName())
+                && $declaringClass->hasProperty($refParameterName)
+                && ($property = $declaringClass->getProperty($refParameterName))
+                && $property->isReadOnly()
+            ) {
+                /** @var PromotedParameter $parameter */
+                $parameter = $method->getParameter($refParameterName);
+                $parameter->setReadOnly();
+            }
+        }
 
         // Replace parameter and return types with the proxied class
         $declaringClass   = $refMethod->getDeclaringClass();

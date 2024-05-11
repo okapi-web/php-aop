@@ -14,7 +14,6 @@ use Okapi\Aop\Core\Cache\{CachePaths, CacheStateFactory, CacheStateManager};
 use Okapi\Aop\Core\Container\{AspectManager, TransformerManager};
 use Okapi\Aop\Core\Options;
 use Okapi\Aop\Core\Processor\AspectProcessor;
-use Okapi\Aop\Core\Transformer\NetteReflectionWithBetterReflection;
 use Okapi\CodeTransformer\CodeTransformerKernel;
 use Okapi\CodeTransformer\Core\AutoloadInterceptor\ClassLoader as CodeTransformerClassLoader;
 use Okapi\CodeTransformer\Core\Cache\CachePaths as CodeTransformerCachePaths;
@@ -110,11 +109,6 @@ abstract class AopKernel extends CodeTransformerKernel
      */
     protected function preInit(): void
     {
-        // Add internal transformers
-        $this->transformerManager->addTransformers([
-            NetteReflectionWithBetterReflection::class,
-        ]);
-
         // Add the aspects
         $this->aspectManager->addAspects($this->aspects);
 
