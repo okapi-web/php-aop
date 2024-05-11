@@ -7,10 +7,9 @@ use Nette\PhpGenerator\ClassLike;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Factory;
 use Nette\PhpGenerator\Method;
-use Nette\PhpGenerator\Parameter;
 use Nette\PhpGenerator\PhpNamespace;
+use Nette\PhpGenerator\PromotedParameter;
 use Nette\PhpGenerator\Property;
-use Nette\Utils\Type;
 use Okapi\Aop\Core\Cache\CachePaths;
 use Okapi\Aop\Core\Container\AdviceContainer;
 use Okapi\Aop\Core\Container\AdviceType\MethodAdviceContainer;
@@ -18,6 +17,7 @@ use Okapi\Aop\Core\JoinPoint\JoinPoint;
 use Okapi\Aop\Core\JoinPoint\JoinPointInjector;
 use Okapi\CodeTransformer\Core\DI;
 use Okapi\CodeTransformer\Transformer\Code;
+use Roave\BetterReflection\Reflection\Adapter\ReflectionMethod;
 use Roave\BetterReflection\Reflection\ReflectionMethod as BetterReflectionMethod;
 
 /**
@@ -206,24 +206,31 @@ class WovenClassBuilder
      * @param BetterReflectionMethod $refMethod
      *
      * @return Method
+     *
+     * @noinspection PhpDocMissingThrowsInspection
      */
     private function buildMethod(BetterReflectionMethod $refMethod): Method
     {
-        $method     = (new Factory)->fromMethodReflection($refMethod);
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $method = (new Factory)->fromMethodReflection(
+            new ReflectionMethod($refMethod),
+        );
+
         $methodName = $refMethod->getName();
 
-        // Replace parameter and return types with the proxied class
-        $declaringClass   = $refMethod->getDeclaringClass();
-        $fullClassName    = '\\' . $declaringClass->getNamespaceName()
-            . '\\' . $declaringClass->getShortName();
-        $proxiedClassName = $fullClassName . $this->cachePaths::PROXIED_SUFFIX;
-        foreach ($method->getParameters() as $parameter) {
-            $this->replaceParameterType($parameter, $proxiedClassName);
-        }
-        if ($method->getReturnType() === 'self') {
-            $method->setReturnType(
-                $proxiedClassName,
-            );
+        // ReadOnly Hack: https://github.com/nette/php-generator/issues/158
+        foreach ($refMethod->getParameters() as $refParameter) {
+            if ($refParameter->isPromoted()
+                && ($declaringClass = $refParameter->getDeclaringClass())
+                && ($refParameterName = $refParameter->getName())
+                && $declaringClass->hasProperty($refParameterName)
+                && ($property = $declaringClass->getProperty($refParameterName))
+                && $property->isReadOnly()
+            ) {
+                /** @var PromotedParameter $parameter */
+                $parameter = $method->getParameter($refParameterName);
+                $parameter->setReadOnly();
+            }
         }
 
         // Add "return" if the method has a return type
@@ -258,67 +265,6 @@ class WovenClassBuilder
         $method->setVisibility(ClassLike::VisibilityPublic);
 
         return $method;
-    }
-
-    /**
-     * Replace the parameter type with the proxied class.
-     *
-     * @param Parameter|Type $parameterOrType
-     * @param string         $proxiedClassName
-     *
-     * @return void
-     */
-    private function replaceParameterType(
-        Parameter|Type $parameterOrType,
-        string         $proxiedClassName
-    ): void {
-        $objectType = $parameterOrType instanceof Parameter
-            ? $parameterOrType->getType(true)
-            : $parameterOrType;
-        if (!$objectType) {
-            return;
-        }
-
-        $typeString = $this->getTypeString($objectType, $proxiedClassName);
-        $parameterOrType->setType($typeString);
-    }
-
-    /**
-     * Get the parameter array as a string.
-     *
-     * @param Type   $type
-     * @param string $proxiedClassName
-     *
-     * @return string
-     */
-    private function getTypeString(Type $type, string $proxiedClassName): string
-    {
-        // If the type is a union or intersection, we need to replace each type
-        if ($type->isUnion() || $type->isIntersection()) {
-            $typeNames = array_map(function ($type) use ($proxiedClassName) {
-                return $this->getTypeString($type, $proxiedClassName);
-            }, $type->getTypes());
-            $glue      = $type->isUnion() ? '|' : '&';
-            return implode($glue, $typeNames);
-        } elseif ($type->getSingleName() === 'self') {
-            // If the type is "self", we need to replace it with the proxied
-            // class
-            return $proxiedClassName;
-        } elseif ($type->isClass()) {
-            // If the type is a class, we need to check if the class
-            // is a proxy
-            $typeFullClassName = '\\' . $type->getSingleName();
-            $typeProxiedClassName =
-                $typeFullClassName . $this->cachePaths::PROXIED_SUFFIX;
-
-            if (class_exists($typeFullClassName)
-                && class_exists($typeProxiedClassName)
-            ) {
-                return $typeProxiedClassName;
-            }
-        }
-
-        return $type->getSingleName();
     }
 
     /**
