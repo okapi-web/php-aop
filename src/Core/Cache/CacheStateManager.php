@@ -27,8 +27,8 @@ class CacheStateManager extends CodeTransformerCacheStateManager
     {
         $transformerHash = parent::getHash();
 
-        $advices = $this->aspectManager->getAdvices();
-        $aspectHash = md5(serialize($advices));
+        $aspectAdviceNames = $this->aspectManager->getAspectAdviceNames();
+        $aspectHash = md5(serialize($aspectAdviceNames));
 
         return $transformerHash . $aspectHash;
     }
