@@ -213,6 +213,22 @@ class AspectManager
     }
 
     /**
+     * Get the aspect advice names.
+     *
+     * @return string[]
+     */
+    public function getAspectAdviceNames(): array
+    {
+        $aspectAdviceNames = [];
+        foreach ($this->aspects as $aspect) {
+            foreach ($this->aspectAdviceContainers[$aspect] as $adviceContainer) {
+                $aspectAdviceNames[] = $adviceContainer->getName();
+            }
+        }
+        return $aspectAdviceNames;
+    }
+
+    /**
      * Get the advice containers by advice names.
      *
      * @param string[] $adviceNames
