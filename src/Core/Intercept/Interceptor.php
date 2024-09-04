@@ -159,7 +159,7 @@ class Interceptor
 
         $this->unwrapVariadicParameters($parentMethod, $args);
 
-        return $parentMethod->invoke($subject, ...array_values($args));
+        return $parentMethod->invokeArgs($subject, array_values($args));
     }
 
     /**

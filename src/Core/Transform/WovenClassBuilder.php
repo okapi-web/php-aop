@@ -211,9 +211,10 @@ class WovenClassBuilder
      */
     private function buildMethod(BetterReflectionMethod $refMethod): Method
     {
+        $refMethod = new ReflectionMethod($refMethod);
         /** @noinspection PhpUnhandledExceptionInspection */
         $method = (new Factory)->fromMethodReflection(
-            new ReflectionMethod($refMethod),
+            $refMethod,
         );
 
         $methodName = $refMethod->getName();
@@ -228,7 +229,7 @@ class WovenClassBuilder
         $return = (string)$method->getReturnType() !== 'void' ? 'return ' : '';
 
         // Add parameters as an array with the parameter name as key
-        $parametersArray = $this->getParametersArray($method);
+        $parametersArray = $this->getParametersArray($refMethod);
         $parameters      = $parametersArray ? ", $parametersArray" : '';
 
         // Static methods don't have $this
@@ -262,11 +263,11 @@ class WovenClassBuilder
      * Create an associative array with the parameter name as key and the
      * parameter as value.
      *
-     * @param Method $method
+     * @param ReflectionMethod $method
      *
      * @return string|null
      */
-    private function getParametersArray(Method $method): ?string
+    private function getParametersArray(ReflectionMethod $method): ?string
     {
         $parameters = $method->getParameters();
         if (empty($parameters)) {
@@ -276,7 +277,8 @@ class WovenClassBuilder
         $arguments = [];
 
         foreach ($parameters as $parameter) {
-            $arguments[] = '\'' . $parameter->getName() . '\' => $' . $parameter->getName();
+            $isRef = $parameter->isPassedByReference() ? '&' : '';
+            $arguments[] = '\'' . $parameter->getName() . '\' => ' . $isRef . '$' . $parameter->getName();
         }
 
         return '[' . implode(', ', $arguments) . ']';
