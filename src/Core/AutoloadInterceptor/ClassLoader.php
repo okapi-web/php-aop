@@ -34,16 +34,13 @@ class ClassLoader extends CodeTransformerClassLoader
     /**
      * Find the path to the file and match and apply the aspects.
      *
-     * @param class-string $namespacedClass
+     * @param string $class
      *
      * @return false|string
-     *
-     * @noinspection PhpStatementHasEmptyBodyInspection
      */
-    // CodeTransformer uses $namespacedClass; its Composer parent uses $class.
-    // Keep our immediate parent's existing named-argument contract until that dependency is aligned.
-    public function findFile($namespacedClass): false|string
+    public function findFile($class): false|string
     {
+        $namespacedClass = $class;
         $filePath = $this->originalClassLoader->findFile($namespacedClass);
 
         // @codeCoverageIgnoreStart
@@ -63,7 +60,6 @@ class ClassLoader extends CodeTransformerClassLoader
             return false;
         }
 
-        /** @var string[] $excludePaths */
         $excludePaths = $this->options->getExcludePaths();
         foreach ($excludePaths as $path) {
             $resolvedPath = Path::resolve($path);

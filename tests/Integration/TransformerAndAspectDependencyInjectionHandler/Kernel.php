@@ -31,7 +31,7 @@ class Kernel extends AopKernel
         Aspect::class,
     ];
 
-    /** @var array<array-key, class-string<\Okapi\CodeTransformer\Transformer>> */
+    /** @var array<array-key, mixed> */
     protected array $transformers = [
         Transformer::class,
     ];

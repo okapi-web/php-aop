@@ -9,6 +9,11 @@ excludes = ["tests/cache", "tests/coverage"]
 [linter]
 integrations = ["phpunit"]
 
+[linter.rules.disallowed-functions]
+enabled = true
+level = "error"
+functions = ["assert"]
+
 # Preserve the library's coercion contract and existing public call signatures.
 [linter.rules.strict-types]
 enabled = false
