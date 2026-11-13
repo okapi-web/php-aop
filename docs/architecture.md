@@ -125,7 +125,25 @@ flowchart TD
 
 This is the normal successful path. An exception interrupts it; `After` is not a
 `finally` handler. Missing advice groups are skipped. The configured advice order
-is applied within the Before, Around, and After groups.
+is applied within the Before, Around, After, and AfterThrowing groups.
+
+If an original target call throws a `Throwable`, the interceptor runs the matching
+`AfterThrowing` advice in order and rethrows the same object. This happens inside
+the original-method callback, before control returns to any surrounding Around
+advice. Successful calls and failures originating in other advice skip this group.
+AfterThrowing invocations expose `getThrowable()` and invocation context, without
+`proceed()` or result replacement. If this advice itself throws, its throwable
+propagates immediately and the remaining failure advice does not run.
+
+Each AfterThrowing attribute can restrict execution with an `exception` type
+filter. Matching includes subclasses; the default `Throwable`
+filter accepts both exceptions and errors. The filter is validated when the advice
+attribute is instantiated, and is applied again on each failing target call.
+
+Join points and cached metadata identify each advice declaration by its aspect,
+method, and attribute index. Repeated attributes retain their own method filters
+and execution order. The cache hash includes the declaration format version so
+older method-name-only caches are rebuilt, including caches of explicit aspects.
 
 An Around invocation's `proceed()` advances the chain. The original method can run
 inside that call; the Around advice then resumes and can modify the result. The

@@ -27,6 +27,7 @@ class AdviceContainerFactory
      * @param BaseReflectionClass     $aspectRefClass
      * @param BaseReflectionAttribute $adviceAttribute
      * @param BaseReflectionMethod    $adviceRefMethod
+     * @param int                     $declarationIndex
      *
      * @return AdviceContainer
      *
@@ -38,6 +39,7 @@ class AdviceContainerFactory
         BaseReflectionClass $aspectRefClass,
         BaseReflectionAttribute $adviceAttribute,
         BaseReflectionMethod $adviceRefMethod,
+        int $declarationIndex = 0,
     ): AdviceContainer {
         // Instantiate the advice attribute
         $adviceAttributeInstance = $adviceAttribute->newInstance();
@@ -54,6 +56,7 @@ class AdviceContainerFactory
                 'adviceAttributeInstance' => $adviceAttributeInstance,
                 'adviceRefMethod' => $adviceRefMethod,
                 'isExplicit' => $isExplicit,
+                'declarationIndex' => $declarationIndex,
             ]);
 
             // If the aspect is implicit,

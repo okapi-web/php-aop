@@ -4,6 +4,8 @@
 namespace Okapi\Aop\Core\Intercept;
 
 use DI\Attribute\Inject;
+use LogicException;
+use Okapi\Aop\Attributes\AfterThrowing;
 use Okapi\Aop\Core\Container\AdviceType\MethodAdviceContainer;
 use Okapi\Aop\Core\Factory\InvocationFactory;
 use Okapi\Aop\Core\Invocation\AdviceChain;
@@ -11,6 +13,7 @@ use Okapi\Aop\Core\JoinPoint\JoinPointHandler;
 use Okapi\CodeTransformer\Core\DI;
 use ReflectionClass as BaseReflectionClass;
 use ReflectionMethod;
+use Throwable;
 
 /**
  * # Interceptor
@@ -36,6 +39,11 @@ class Interceptor
 
     /** @var MethodAdviceContainer[] */
     private array $afterInterceptors = [];
+
+    /**
+     * @var MethodAdviceContainer[]
+     */
+    private array $afterThrowingInterceptors = [];
 
     /**
      * The target class reflection.
@@ -64,7 +72,12 @@ class Interceptor
             'joinPoints' => $joinPoints,
         ]);
 
-        $joinPointHandler->handle($this->beforeInterceptors, $this->aroundInterceptors, $this->afterInterceptors);
+        $joinPointHandler->handle(
+            $this->beforeInterceptors,
+            $this->aroundInterceptors,
+            $this->afterInterceptors,
+            $this->afterThrowingInterceptors,
+        );
 
         $this->targetRefClass = new BaseReflectionClass($className);
     }
@@ -158,13 +171,36 @@ class Interceptor
         $parentClass = $this->targetRefClass->getParentClass();
 
         if ($parentClass === false) {
-            throw new \LogicException('An intercepted class must have a woven parent.');
+            throw new LogicException('An intercepted class must have a woven parent.');
         }
         $parentMethod = $parentClass->getMethod($this->methodName);
 
+        $invocationArguments = $args;
         $this->unwrapVariadicParameters($parentMethod, $args);
 
-        return $parentMethod->invokeArgs($subject, array_values($args));
+        try {
+            return $parentMethod->invokeArgs($subject, array_values($args));
+        } catch (Throwable $throwable) {
+            foreach ($this->afterThrowingInterceptors as $interceptor) {
+                $advice = $interceptor->adviceAttributeInstance;
+                if (!$advice instanceof AfterThrowing || !is_a($throwable::class, $advice->exception, true)) {
+                    continue;
+                }
+
+                $invocation = $this->invocationFactory->getInvocation(
+                    adviceContainer: $interceptor,
+                    subject: $subject,
+                    className: $this->className,
+                    methodName: $this->methodName,
+                    result: null,
+                    arguments: $invocationArguments,
+                    throwable: $throwable,
+                );
+
+                $interceptor->adviceRefMethod->invoke($interceptor->aspectInstance, $invocation);
+            }
+            throw $throwable;
+        }
     }
 
     /**
@@ -187,8 +223,9 @@ class Interceptor
             /** @var mixed $variadicArguments */
             $variadicArguments = $args[$lastParameterName];
             if (!is_array($variadicArguments)) {
-                throw new \LogicException('Variadic arguments must be an array.');
+                throw new LogicException('Variadic arguments must be an array.');
             }
+
             $variadicParameterValues = array_values($variadicArguments);
 
             unset($args[$lastParameterName]);

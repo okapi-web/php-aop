@@ -37,6 +37,7 @@ class MethodAdviceContainer extends AdviceContainer
      * @param MethodAdvice            $adviceAttributeInstance
      * @param BaseReflectionMethod    $adviceRefMethod
      * @param bool                    $isExplicit
+     * @param int                     $declarationIndex Position among the advice attributes on the method.
      */
     public function __construct(
         string $aspectClassName,
@@ -46,6 +47,7 @@ class MethodAdviceContainer extends AdviceContainer
         MethodAdvice $adviceAttributeInstance,
         public readonly BaseReflectionMethod $adviceRefMethod,
         private readonly bool $isExplicit,
+        private readonly int $declarationIndex = 0,
     ) {
         parent::__construct(
             $aspectClassName,
@@ -81,13 +83,13 @@ class MethodAdviceContainer extends AdviceContainer
     }
 
     /**
-     * Get advice name.
+     * Get the identity of this advice declaration.
      *
      * @return string
      */
     public function getName(): string
     {
-        return $this->aspectClassName . '::' . $this->adviceRefMethod->getName();
+        return $this->aspectClassName . '::' . $this->adviceRefMethod->getName() . '#' . $this->declarationIndex;
     }
 
     /**

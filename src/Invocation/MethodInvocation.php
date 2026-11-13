@@ -3,6 +3,7 @@
 namespace Okapi\Aop\Invocation;
 
 use Okapi\Aop\Advice\AdviceType;
+use UnhandledMatchError;
 
 /**
  * # Method invocation
@@ -86,8 +87,6 @@ abstract class MethodInvocation
      * Get the advice type of the invocation.
      *
      * @return AdviceType
-     *
-     * @noinspection PhpUndefinedClassInspection
      */
     public function getAdviceType(): AdviceType
     {
@@ -95,7 +94,8 @@ abstract class MethodInvocation
             $this instanceof AroundMethodInvocation => AdviceType::Around,
             $this instanceof BeforeMethodInvocation => AdviceType::Before,
             $this instanceof AfterMethodInvocation => AdviceType::After,
-            default => throw new \UnhandledMatchError('Unsupported advice invocation type.'),
+            $this instanceof AfterThrowingMethodInvocation => AdviceType::AfterThrowing,
+            default => throw new UnhandledMatchError('Unsupported advice invocation type.'),
         };
     }
 
