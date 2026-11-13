@@ -20,7 +20,7 @@ trait ClassLoaderMockTrait
             $this->findClassLoader();
         }
 
-        assert($this->classLoader instanceof ClassLoader, 'The invocation must match the configured test fixture.');
+        Assert::assertInstanceOf(ClassLoader::class, $this->classLoader);
         /** @var mixed $file */
         $file = $this->classLoader->findFile($class);
         Assert::assertIsString($file);
@@ -33,7 +33,7 @@ trait ClassLoaderMockTrait
             $this->findClassLoader();
         }
 
-        assert($this->classLoader instanceof ClassLoader, 'The invocation must match the configured test fixture.');
+        Assert::assertInstanceOf(ClassLoader::class, $this->classLoader);
         $original = new ReflectionProperty(ClassLoader::class, 'originalClassLoader');
         /** @var mixed $loader */
         $loader = $original->getValue($this->classLoader);

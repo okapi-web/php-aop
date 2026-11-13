@@ -12,6 +12,7 @@ use Okapi\Aop\Invocation\AroundMethodInvocation;
 use Okapi\Aop\Invocation\MethodInvocation;
 use Okapi\Aop\Tests\Functional\AdviceBehavior\BeforeAroundAfterAdviceOnSameAdviceMethod\Target\Calculator;
 use Okapi\Aop\Tests\Stubs\Etc\Logger;
+use PHPUnit\Framework\Assert;
 
 #[Aspect]
 class CalculatorLoggerAspect
@@ -30,8 +31,9 @@ class CalculatorLoggerAspect
         }
 
         if ($adviceType === AdviceType::Around) {
-            assert(
-                $invocation instanceof AroundMethodInvocation,
+            Assert::assertInstanceOf(
+                AroundMethodInvocation::class,
+                $invocation,
                 'The invocation must match the configured test fixture.',
             );
 
@@ -45,8 +47,9 @@ class CalculatorLoggerAspect
         }
 
         if ($adviceType === AdviceType::After) {
-            assert(
-                $invocation instanceof \Okapi\Aop\Invocation\AfterMethodInvocation,
+            Assert::assertInstanceOf(
+                \Okapi\Aop\Invocation\AfterMethodInvocation::class,
+                $invocation,
                 'The invocation must match the configured test fixture.',
             );
             /** @var int $result */

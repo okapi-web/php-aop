@@ -4,6 +4,7 @@
 namespace Okapi\Aop\Core\Transform;
 
 use DI\Attribute\Inject;
+use LogicException;
 use Microsoft\PhpParser\Node;
 use Microsoft\PhpParser\Token;
 use Microsoft\PhpParser\TokenKind;
@@ -142,7 +143,9 @@ class ProxiedClassModifier
     {
         // Find the class declaration
         $node = $this->sourceFileNode->getFirstDescendantNode(Node\Statement\ClassDeclaration::class);
-        assert($node instanceof Node\Statement\ClassDeclaration, 'The transformed source must declare a class.');
+        if (!$node instanceof Node\Statement\ClassDeclaration) {
+            throw new LogicException('The transformed source must declare a class.');
+        }
 
         // Replace the class name
         $this->edit($node->name, $this->proxiedClassName);
@@ -312,7 +315,9 @@ class ProxiedClassModifier
                         if (!$methodNode) {
                             break;
                         }
-                        assert($methodNode instanceof Node\MethodDeclaration, 'The enclosing node must be a method.');
+                        if (!$methodNode instanceof Node\MethodDeclaration) {
+                            throw new LogicException('The enclosing node must be a method.');
+                        }
 
                         $originalNamespacedClassName = $this->code->getNamespacedClass();
                         $originalMethodName = $methodNode->getName();
