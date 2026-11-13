@@ -67,7 +67,7 @@ abstract class AopKernel extends CodeTransformerKernel
     /**
      * The exclude paths. Paths/directories in this array will be excluded
      *
-     * @var array
+     * @var string[]
      */
     protected array $excludePaths = [];
 

@@ -11,7 +11,7 @@ class Kernel extends AopKernel
 {
     protected ?string $cacheDir = Util::CACHE_DIR;
 
-    /** @var array<array-key, class-string<\Okapi\CodeTransformer\Transformer>> */
+    /** @var array<array-key, mixed> */
     protected array $transformers = [
         FixIncorrectFunctionTransformer::class,
     ];
