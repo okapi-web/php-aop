@@ -116,7 +116,7 @@ composer require okapi/aop
   target classes. Aspects must be annotated with the `#[Aspect]` attribute.
 
 - **Advice**: The logic that you want to apply to your target classes. Advice
-  methods must be annotated with the `#[Before]`, `#[Around]` or `#[After]`
+  methods must be annotated with `#[Before]`, `#[Around]`, `#[After]`, or `#[AfterThrowing]`
   attributes.
 
 - **Join Point**: A point in the execution of your target classes where you can
@@ -182,7 +182,7 @@ use Okapi\Aop\Invocation\AfterMethodInvocation;
 class DiscountAspect
 {
     // Annotate the methods that you want to intercept with
-    // "Before", "Around" or "After" attributes
+    // "Before", "Around", "After", or "AfterThrowing" attributes
     #[After(
         // Use named arguments
         // You can also use Wildcards (see Okapi/Wildcards package)
@@ -307,6 +307,47 @@ class PaymentProcessorAspect
 ```
 
 
+### AfterThrowing advice
+
+`#[AfterThrowing]` runs when the intercepted target method throws an exception or
+PHP error (`Throwable`). It receives the original throwable and the invocation
+context:
+
+```php
+use Okapi\Aop\Attributes\AfterThrowing;
+use Okapi\Aop\Invocation\AfterThrowingMethodInvocation;
+
+// Inside an aspect:
+#[AfterThrowing(
+    class: PaymentProcessor::class,
+    method: 'processPayment',
+    exception: \DomainException::class,
+)]
+public function logFailure(AfterThrowingMethodInvocation $invocation): void
+{
+    error_log($invocation->getThrowable()->getMessage());
+}
+```
+
+It supports the same class/method patterns, `order`, `interceptTraitMethods`, and
+`onlyPublicMethods` options as the other method advice types, including explicit
+class-level and method-level aspects. Advice runs in ascending `order`.
+
+The optional `exception` filter matches the given type and its subclasses. It
+defaults to `Throwable::class`, which includes exceptions and PHP errors. Use
+`Exception::class` to exclude errors, or `Error::class` to handle only errors.
+An unknown type or a type that does not implement `Throwable` is rejected when the
+advice attribute is instantiated.
+
+- Successful calls and exceptions caught inside the target do not trigger it.
+- The original throwable is rethrown after the advice completes. Return values are
+  ignored; the invocation has no `proceed()` or `setResult()` method.
+- It runs before an outer `Around` advice catches a target failure. Repeated target
+  calls through `proceed(true)` trigger it for each failure.
+- Exceptions originating in `Before`, `Around`, or `After` advice do not trigger it.
+- If an `AfterThrowing` advice throws, that new throwable propagates and remaining
+  `AfterThrowing` advice is skipped.
+
 ### Regular-expression patterns
 
 `class` and `method` accept either wildcard strings or explicit
@@ -324,7 +365,7 @@ use Okapi\Wildcards\Regex;
 
 This matches controller methods whose names start with a letter, excluding
 constructors and other magic methods. Regex objects can also be used for `class`.
-The same arguments are supported by `Before`, `Around`, and `After`.
+The same arguments are supported by `Before`, `Around`, `After`, and `AfterThrowing`.
 
 Pass a complete PHP regular expression, including delimiters and any modifiers.
 Regex patterns are used as written: add `^` and `$` when you want to match the
@@ -709,7 +750,7 @@ $firstLog = $logs[0];
 
 # Features
 
-- **Advice types:** "Before", "Around" and "After"
+- **Advice types:** "Before", "Around", "After", and "AfterThrowing"
 
 - Intercept "private" and "protected" methods
   (Will show errors in IDEs)

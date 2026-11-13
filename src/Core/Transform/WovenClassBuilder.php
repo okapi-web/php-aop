@@ -224,7 +224,6 @@ class WovenClassBuilder
     private function buildMethod(BetterReflectionMethod $refMethod): Method
     {
         $refMethod = new ReflectionMethod($refMethod);
-        /** @noinspection PhpUnhandledExceptionInspection */
         $method = (new Factory())->fromMethodReflection($refMethod);
 
         $methodName = $refMethod->getName();
@@ -247,8 +246,8 @@ class WovenClassBuilder
         }
         $method->setParameters(array_values($parameters));
 
-        // Add "return" if the method has a return type
-        $return = (string) $method->getReturnType() !== 'void' ? 'return ' : '';
+        // Void and never methods cannot contain a return value.
+        $return = in_array((string) $method->getReturnType(), ['void', 'never'], true) ? '' : 'return ';
 
         // Add parameters as an array with the parameter name as key
         $parametersArray = $this->getParametersArray($refMethod);

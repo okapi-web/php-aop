@@ -2,15 +2,19 @@
 
 namespace Okapi\Aop\Core\Factory;
 
+use LogicException;
 use Okapi\Aop\Attributes\After;
+use Okapi\Aop\Attributes\AfterThrowing;
 use Okapi\Aop\Attributes\Around;
 use Okapi\Aop\Attributes\Before;
 use Okapi\Aop\Core\Container\AdviceType\MethodAdviceContainer;
 use Okapi\Aop\Invocation\AfterMethodInvocation;
+use Okapi\Aop\Invocation\AfterThrowingMethodInvocation;
 use Okapi\Aop\Invocation\AroundMethodInvocation;
 use Okapi\Aop\Invocation\BeforeMethodInvocation;
 use Okapi\Aop\Invocation\MethodInvocation;
 use Okapi\CodeTransformer\Core\DI;
+use Throwable;
 
 /**
  * # Invocation Factory
@@ -28,10 +32,9 @@ class InvocationFactory
      * @param string                $methodName
      * @param mixed                 $result
      * @param array                 $arguments
+     * @param Throwable|null        $throwable The target failure for AfterThrowing advice.
      *
      * @return MethodInvocation
-     *
-     * @noinspection PhpInconsistentReturnPointsInspection
      */
     public function getInvocation(
         MethodAdviceContainer $adviceContainer,
@@ -40,8 +43,21 @@ class InvocationFactory
         string $methodName,
         mixed $result,
         array &$arguments,
+        ?Throwable $throwable = null,
     ): MethodInvocation {
         switch (true) {
+            case $adviceContainer->adviceAttributeInstance instanceof AfterThrowing:
+                if ($throwable === null) {
+                    throw new LogicException('AfterThrowing advice requires a target throwable.');
+                }
+                return DI::make(AfterThrowingMethodInvocation::class, [
+                    'subject' => $subject,
+                    'className' => $className,
+                    'methodName' => $methodName,
+                    'arguments' => &$arguments,
+                    'throwable' => $throwable,
+                ]);
+
             // Before
             case $adviceContainer->adviceAttributeInstance instanceof Before:
                 return DI::make(BeforeMethodInvocation::class, [
@@ -72,6 +88,6 @@ class InvocationFactory
                     'arguments' => &$arguments,
                 ]);
         }
-        throw new \LogicException('Unsupported advice type.');
+        throw new LogicException('Unsupported advice type.');
     }
 }

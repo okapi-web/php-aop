@@ -5,8 +5,10 @@ namespace Okapi\Aop\Core\JoinPoint;
 
 use DI\Attribute\Inject;
 use Okapi\Aop\Attributes\After;
+use Okapi\Aop\Attributes\AfterThrowing;
 use Okapi\Aop\Attributes\Around;
 use Okapi\Aop\Attributes\Before;
+use Okapi\Aop\Core\Container\AdviceType\MethodAdviceContainer;
 use Okapi\Aop\Core\Matcher\AspectMatcher;
 
 /**
@@ -37,14 +39,19 @@ class JoinPointHandler
     /**
      * Add the matched advices to the given interceptor arrays.
      *
-     * @param \Okapi\Aop\Core\Container\AdviceType\MethodAdviceContainer[] $beforeInterceptors
-     * @param \Okapi\Aop\Core\Container\AdviceType\MethodAdviceContainer[] $aroundInterceptors
-     * @param \Okapi\Aop\Core\Container\AdviceType\MethodAdviceContainer[] $afterInterceptors
+     * @param MethodAdviceContainer[] $beforeInterceptors
+     * @param MethodAdviceContainer[] $aroundInterceptors
+     * @param MethodAdviceContainer[] $afterInterceptors
+     * @param MethodAdviceContainer[] $afterThrowingInterceptors
      *
      * @return void
      */
-    public function handle(array &$beforeInterceptors, array &$aroundInterceptors, array &$afterInterceptors): void
-    {
+    public function handle(
+        array &$beforeInterceptors,
+        array &$aroundInterceptors,
+        array &$afterInterceptors,
+        array &$afterThrowingInterceptors = [],
+    ): void {
         foreach ($this->joinPoints as $joinPoint) {
             $adviceContainers = $this->aspectMatcher->getMatchedAdviceContainersByJoinPoint(
                 $this->className,
@@ -54,6 +61,9 @@ class JoinPointHandler
             foreach ($adviceContainers as $adviceContainer) {
                 $adviceAttributeInstance = $adviceContainer->adviceAttributeInstance;
                 switch (true) {
+                    case $adviceAttributeInstance instanceof AfterThrowing:
+                        $afterThrowingInterceptors[] = $adviceContainer;
+                        break;
                     case $adviceAttributeInstance instanceof Before:
                         $beforeInterceptors[] = $adviceContainer;
                         break;

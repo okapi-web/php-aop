@@ -161,13 +161,14 @@ class AspectManager
             );
 
             // Create advice containers and store them
-            foreach ($adviceAttributes as $adviceAttribute) {
+            foreach ($adviceAttributes as $declarationIndex => $adviceAttribute) {
                 $adviceContainer = $this->adviceContainerFactory->createAdviceContainer(
                     $aspectClassName,
                     $aspectInstance,
                     $aspectRefClass,
                     $adviceAttribute,
                     $adviceRefMember,
+                    $declarationIndex,
                 );
 
                 $this->aspectAdviceContainers[$aspectClassName][] = $adviceContainer;

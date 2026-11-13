@@ -14,6 +14,5 @@ enum AdviceType
     case After;
     // Reserved for future after-returning advice support.
     case AfterReturning;
-    // Reserved for future after-throwing advice support.
     case AfterThrowing;
 }

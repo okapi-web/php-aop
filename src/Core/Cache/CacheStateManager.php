@@ -12,6 +12,9 @@ use Okapi\CodeTransformer\Core\Cache\CacheStateManager as CodeTransformerCacheSt
  */
 class CacheStateManager extends CodeTransformerCacheStateManager
 {
+    // Invalidate method-name-only join points, including caches of explicit aspects.
+    private const ADVICE_DECLARATION_VERSION = 1;
+
     // region DI
 
     #[Inject]
@@ -29,7 +32,7 @@ class CacheStateManager extends CodeTransformerCacheStateManager
         $transformerHash = parent::getHash();
 
         $aspectAdviceNames = $this->aspectManager->getAspectAdviceNames();
-        $aspectHash = md5(serialize($aspectAdviceNames));
+        $aspectHash = md5(serialize([self::ADVICE_DECLARATION_VERSION, $aspectAdviceNames]));
 
         return $transformerHash . $aspectHash;
     }

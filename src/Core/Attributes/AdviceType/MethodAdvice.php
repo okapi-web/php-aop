@@ -3,6 +3,7 @@
 namespace Okapi\Aop\Core\Attributes\AdviceType;
 
 use Okapi\Aop\Attributes\After;
+use Okapi\Aop\Attributes\AfterThrowing;
 use Okapi\Aop\Attributes\Around;
 use Okapi\Aop\Attributes\Before;
 use Okapi\Aop\Core\Attributes\Base\BaseAdvice;
@@ -17,6 +18,7 @@ use Okapi\Wildcards\Regex;
  * @see Before
  * @see Around
  * @see After
+ * @see AfterThrowing
  */
 abstract class MethodAdvice extends BaseAdvice
 {
